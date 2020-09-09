@@ -1,0 +1,582 @@
+<!DOCTYPE html><html lang="zh-Hans"><head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/1281.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/323.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/161.png">
+  <link rel="mask-icon" href="/images/atom.svg" color="#222">
+
+
+
+
+
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://freehubs.github.io').hostname,
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.7.1',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="Array Buffers            一个ArrayBuffer缓冲包含数组和数组的大小。对数组缓冲的大多数操作，其速度与数组本身无异。因为这些操作直接访问、修改底层数组。另外，数组缓冲可以进行高效的尾插数据。追加操作均摊下来只需常量时间。因此，数组缓冲可以高效的建立一个有大量数据的容器，无论是否总有数据追加到尾部。 12345678scala&amp;gt; val">
+<meta name="keywords" content="scala">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Scala可变容器类">
+<meta property="og:url" content="https://freehubs.github.io/2020/02/24/Scala可变容器类/index.html">
+<meta property="og:site_name" content="Freehubs">
+<meta property="og:description" content="Array Buffers            一个ArrayBuffer缓冲包含数组和数组的大小。对数组缓冲的大多数操作，其速度与数组本身无异。因为这些操作直接访问、修改底层数组。另外，数组缓冲可以进行高效的尾插数据。追加操作均摊下来只需常量时间。因此，数组缓冲可以高效的建立一个有大量数据的容器，无论是否总有数据追加到尾部。 12345678scala&amp;gt; val">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2020-02-24T16:00:12.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Scala可变容器类">
+<meta name="twitter:description" content="Array Buffers            一个ArrayBuffer缓冲包含数组和数组的大小。对数组缓冲的大多数操作，其速度与数组本身无异。因为这些操作直接访问、修改底层数组。另外，数组缓冲可以进行高效的尾插数据。追加操作均摊下来只需常量时间。因此，数组缓冲可以高效的建立一个有大量数据的容器，无论是否总有数据追加到尾部。 12345678scala&amp;gt; val">
+
+<link rel="canonical" href="https://freehubs.github.io/2020/02/24/Scala可变容器类/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Scala可变容器类 | Freehubs</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Freehubs" type="application/atom+xml">
+<script>function loadCss(l){var d=document,h=d.head,s=d.createElement('link');s.rel='stylesheet';s.href=l;!function e(f){if (d.body)return f();setTimeout(function(){e(f)})}(function(){h.appendChild(s);});}loadCss('/style.css');loadCss('//stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css');loadCss('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css');</script><noscript><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="//stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"><link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css"></noscript></head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Freehubs</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-数工">
+
+    <a href="/bigdata" rel="section">数工</a>
+
+  </li>
+        <li class="menu-item menu-item-面试">
+
+    <a href="/tags/offer/" rel="section">面试</a>
+
+  </li>
+        <li class="menu-item menu-item-算法">
+
+    <a href="/tags/algo/" rel="section">算法</a>
+
+  </li>
+        <li class="menu-item menu-item-gem">
+
+    <a href="/gem/" rel="section">GEM</a>
+
+  </li>
+        <li class="menu-item menu-item-生活">
+
+    <a href="/tags/life/" rel="section">生活</a>
+
+  </li>
+        <li class="menu-item menu-item-归档">
+
+    <a href="/archives/" rel="section">归档</a>
+
+  </li>
+        <li class="menu-item menu-item-标签">
+
+    <a href="/tags/" rel="section">标签</a>
+
+  </li>
+        <li class="menu-item menu-item-博客">
+
+    <a href="/categories/blog/" rel="section">博客</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger">Search
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="Searching..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope="" itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://freehubs.github.io/2020/02/24/Scala可变容器类/">
+
+    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Freehuber">
+      <meta itemprop="description" content="左手写诗，右手撸码">
+    </span>
+
+    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Freehubs">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Scala可变容器类<a href="https://github.com/freehubs/freehubs.github.io.source/tree/master/source/_posts/Scala可变容器类.md" class="post-edit-link" title="Edit this post" rel="noopener" target="_blank"><i class="fa fa-pencil"></i></a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-02-24 16:00:12" itemprop="dateCreated datePublished" datetime="2020-02-24T16:00:12+00:00">2020-02-24</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/scala/" itemprop="url" rel="index">
+                    <span itemprop="name">scala</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <div class="note success">
+            <h2 id="Array-Buffers"><a href="#Array-Buffers" class="headerlink" title="Array Buffers"></a>Array Buffers</h2>
+          </div>
+<p>一个<a href="https://www.scala-lang.org/api/2.10.0/scala/collection/mutable/ArrayBuffer.html" target="_blank" rel="noopener">ArrayBuffer</a>缓冲包含数组和数组的大小。对数组缓冲的大多数操作，其速度与数组本身无异。因为这些操作直接访问、修改底层数组。另外，数组缓冲可以进行高效的尾插数据。追加操作均摊下来只需常量时间。因此，数组缓冲可以高效的建立一个有大量数据的容器，无论是否总有数据追加到尾部。</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; <span class="keyword">val</span> buf = scala.collection.mutable.<span class="type">ArrayBuffer</span>.empty[<span class="type">Int</span>]</span><br><span class="line">buf: scala.collection.mutable.<span class="type">ArrayBuffer</span>[<span class="type">Int</span>] = <span class="type">ArrayBuffer</span>()</span><br><span class="line">scala&gt; buf += <span class="number">1</span></span><br><span class="line">res32: buf<span class="class">.<span class="keyword">type</span> </span>= <span class="type">ArrayBuffer</span>(<span class="number">1</span>)</span><br><span class="line">scala&gt; buf += <span class="number">10</span></span><br><span class="line">res33: buf<span class="class">.<span class="keyword">type</span> </span>= <span class="type">ArrayBuffer</span>(<span class="number">1</span>, <span class="number">10</span>)</span><br><span class="line">scala&gt; buf.toArray</span><br><span class="line">res34: <span class="type">Array</span>[<span class="type">Int</span>] = <span class="type">Array</span>(<span class="number">1</span>, <span class="number">10</span>)</span><br></pre></td></tr></tbody></table></figure>
+<a id="more"></a>
+<div class="note info">
+            <h2 id="List-Buffers"><a href="#List-Buffers" class="headerlink" title="List Buffers"></a>List Buffers</h2>
+          </div>
+<p><a href="https://www.scala-lang.org/api/2.10.0/scala/collection/mutable/ListBuffer.html" target="_blank" rel="noopener">ListBuffer</a> 类似于数组缓冲。区别在于前者内部实现是链表， 而非数组。如果你想把构造完的缓冲转换为列表，那就用列表缓冲，别用数组缓冲。</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; <span class="keyword">val</span> buf = scala.collection.mutable.<span class="type">ListBuffer</span>.empty[<span class="type">Int</span>]</span><br><span class="line">buf: scala.collection.mutable.<span class="type">ListBuffer</span>[<span class="type">Int</span>] = <span class="type">ListBuffer</span>()</span><br><span class="line">scala&gt; buf += <span class="number">1</span></span><br><span class="line">res35: buf<span class="class">.<span class="keyword">type</span> </span>= <span class="type">ListBuffer</span>(<span class="number">1</span>)</span><br><span class="line">scala&gt; buf += <span class="number">10</span></span><br><span class="line">res36: buf<span class="class">.<span class="keyword">type</span> </span>= <span class="type">ListBuffer</span>(<span class="number">1</span>, <span class="number">10</span>)</span><br><span class="line">scala&gt; buf.toList</span><br><span class="line">res37: <span class="type">List</span>[<span class="type">Int</span>] = <span class="type">List</span>(<span class="number">1</span>, <span class="number">10</span>)</span><br></pre></td></tr></tbody></table></figure>
+<div class="note danger">
+            <h2 id="StringBuilders"><a href="#StringBuilders" class="headerlink" title="StringBuilders"></a>StringBuilders</h2>
+          </div>
+<p>数组缓冲用来构建数组，列表缓冲用来创建列表。类似地，<a href="https://www.scala-lang.org/api/2.10.0/scala/collection/mutable/StringBuilder.html" target="_blank" rel="noopener">StringBuilder</a> 用来构造字符串。作为常用的类，字符串构造器已导入到默认的命名空间。直接用 new StringBuilder就可创建字符串构造器 ，像这样：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; <span class="keyword">val</span> buf = <span class="keyword">new</span> <span class="type">StringBuilder</span></span><br><span class="line">buf: <span class="type">StringBuilder</span> =</span><br><span class="line">scala&gt; buf += 'a'</span><br><span class="line">res38: buf<span class="class">.<span class="keyword">type</span> </span>= a</span><br><span class="line">scala&gt; buf ++= <span class="string">"bcdef"</span></span><br><span class="line">res39: buf<span class="class">.<span class="keyword">type</span> </span>= abcdef</span><br><span class="line">scala&gt; buf.toString</span><br><span class="line">res41: <span class="type">String</span> = abcdef</span><br></pre></td></tr></tbody></table></figure>
+<div class="note primary">
+            <h2 id="链表"><a href="#链表" class="headerlink" title="链表"></a>链表</h2>
+          </div>
+<p>链表是可变序列，它由一个个使用next指针进行链接的节点构成。它们的支持类是<a href="https://www.scala-lang.org/api/2.10.0/scala/collection/mutable/LinkedList.html" target="_blank" rel="noopener">LinkedList</a>。在大多数的编程语言中，null可以表示一个空链表，但是在Scalable集合中不是这样。因为就算是空的序列，也必须支持所有的序列方法。尤其是 <code>LinkedList.empty.isEmpty</code> 必须返回<code>true</code>，而不是抛出一个 <code>NullPointerException</code> 。空链表用一种特殊的方式编译：</p>
+<p>它们的 next 字段指向它自身。链表像他们的不可变对象一样，是最佳的顺序遍历序列。此外，链表可以很容易去插入一个元素或链接到另一个链表。</p>
+<div class="note warn">
+            <h2 id="双向链表"><a href="#双向链表" class="headerlink" title="双向链表"></a>双向链表</h2>
+          </div>
+<p>双向链表和单向链表相似，只不过它们除了具有 next字段外，还有一个可变字段 prev用来指向当前节点的上一个元素 。这个多出的链接的好处主要在于可以快速的移除元素。双向链表的支持类是<a href="https://www.scala-lang.org/api/2.10.0/scala/collection/mutable/DoubleLinkedList.html" target="_blank" rel="noopener">DoubleLinkedList</a>.</p>
+<div class="note info">
+            <h2 id="可变列表"><a href="#可变列表" class="headerlink" title="可变列表"></a>可变列表</h2>
+          </div>
+<p><a href="https://www.scala-lang.org/api/2.10.0/scala/collection/mutable/MutableList.html" target="_blank" rel="noopener">MutableList</a> 由一个单向链表和一个指向该链表终端空节点的指针构成。因为避免了贯穿整个列表去遍历搜索它的终端节点，这就使得列表压缩了操作所用的时间。MutableList 目前是Scala中<a href="https://www.scala-lang.org/api/2.10.0/scala/collection/LinearSeq.html" target="_blank" rel="noopener">mutable.LinearSeq</a> 的标准实现。</p>
+<div class="note success">
+            <h2 id="队列"><a href="#队列" class="headerlink" title="队列"></a>队列</h2>
+          </div>
+<p>Scala除了提供了不可变队列之外，还提供了可变队列。你可以像使用一个不可变队列一样地使用一个可变队列，但你需要使用+= 和++=操作符进行添加的方式来替代排队方法。 当然，在一个可变队列中，出队方法将只移除头元素并返回该队列。这里是一个例子：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; <span class="keyword">val</span> queue = <span class="keyword">new</span> scala.collection.mutable.<span class="type">Queue</span>[<span class="type">String</span>]</span><br><span class="line">queue: scala.collection.mutable.<span class="type">Queue</span>[<span class="type">String</span>] = <span class="type">Queue</span>()</span><br><span class="line">scala&gt; queue += <span class="string">"a"</span></span><br><span class="line">res10: queue<span class="class">.<span class="keyword">type</span> </span>= <span class="type">Queue</span>(a)</span><br><span class="line">scala&gt; queue ++= <span class="type">List</span>(<span class="string">"b"</span>, <span class="string">"c"</span>)</span><br><span class="line">res11: queue<span class="class">.<span class="keyword">type</span> </span>= <span class="type">Queue</span>(a, b, c)</span><br><span class="line">scala&gt; queue</span><br><span class="line">res12: scala.collection.mutable.<span class="type">Queue</span>[<span class="type">String</span>] = <span class="type">Queue</span>(a, b, c)</span><br><span class="line">scala&gt; queue.dequeue</span><br><span class="line">res13: <span class="type">String</span> = a</span><br><span class="line">scala&gt; queue</span><br><span class="line">res14: scala.collection.mutable.<span class="type">Queue</span>[<span class="type">String</span>] = <span class="type">Queue</span>(b, c)</span><br></pre></td></tr></tbody></table></figure>
+<div class="note danger">
+            <h2 id="数组序列"><a href="#数组序列" class="headerlink" title="数组序列"></a>数组序列</h2>
+          </div>
+<p>Array Sequences 是具有固定大小的可变序列。在它的内部，用一个 <code>Array[Object]</code>来存储元素。在Scala 中，<a href="https://www.scala-lang.org/api/2.10.0/scala/collection/mutable/ArraySeq.html" target="_blank" rel="noopener">ArraySeq</a> 是它的实现类。</p>
+<p>如果你想拥有 Array 的性能特点，又想建立一个泛型序列实例，但是你又不知道其元素的类型，在运行阶段也无法提供一个<code>ClassTag</code> ，那么你通常可以使用 <code>ArraySeq</code> 。这些问题在<a href="https://docs.scala-lang.org/overviews/collections/arrays.html" target="_blank" rel="noopener">arrays</a>一节中有详细的说明。</p>
+<div class="note primary">
+            <h2 id="堆栈"><a href="#堆栈" class="headerlink" title="堆栈"></a>堆栈</h2>
+          </div>
+<p>你已经在前面看过了不可变栈。还有一个可变栈，支持类是<a href="https://www.scala-lang.org/api/2.10.0/scala/collection/mutable/Stack.html" target="_blank" rel="noopener">mutable.Stack</a>。它的工作方式与不可变栈相同，只是适当的做了修改。</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; <span class="keyword">val</span> stack = <span class="keyword">new</span> scala.collection.mutable.<span class="type">Stack</span>[<span class="type">Int</span>]           </span><br><span class="line">stack: scala.collection.mutable.<span class="type">Stack</span>[<span class="type">Int</span>] = <span class="type">Stack</span>()</span><br><span class="line">scala&gt; stack.push(<span class="number">1</span>)</span><br><span class="line">res0: stack<span class="class">.<span class="keyword">type</span> </span>= <span class="type">Stack</span>(<span class="number">1</span>)</span><br><span class="line">scala&gt; stack</span><br><span class="line">res1: scala.collection.mutable.<span class="type">Stack</span>[<span class="type">Int</span>] = <span class="type">Stack</span>(<span class="number">1</span>)</span><br><span class="line">scala&gt; stack.push(<span class="number">2</span>)</span><br><span class="line">res0: stack<span class="class">.<span class="keyword">type</span> </span>= <span class="type">Stack</span>(<span class="number">1</span>, <span class="number">2</span>)</span><br><span class="line">scala&gt; stack</span><br><span class="line">res3: scala.collection.mutable.<span class="type">Stack</span>[<span class="type">Int</span>] = <span class="type">Stack</span>(<span class="number">1</span>, <span class="number">2</span>)</span><br><span class="line">scala&gt; stack.top</span><br><span class="line">res8: <span class="type">Int</span> = <span class="number">2</span></span><br><span class="line">scala&gt; stack</span><br><span class="line">res9: scala.collection.mutable.<span class="type">Stack</span>[<span class="type">Int</span>] = <span class="type">Stack</span>(<span class="number">1</span>, <span class="number">2</span>)</span><br><span class="line">scala&gt; stack.pop    </span><br><span class="line">res10: <span class="type">Int</span> = <span class="number">2</span></span><br><span class="line">scala&gt; stack    </span><br><span class="line">res11: scala.collection.mutable.<span class="type">Stack</span>[<span class="type">Int</span>] = <span class="type">Stack</span>(<span class="number">1</span>)</span><br></pre></td></tr></tbody></table></figure>
+<div class="note warn">
+            <h2 id="数组堆栈"><a href="#数组堆栈" class="headerlink" title="数组堆栈"></a>数组堆栈</h2>
+          </div>
+<p><a href="https://www.scala-lang.org/api/2.10.0/scala/collection/mutable/ArrayStack.html" target="_blank" rel="noopener">ArrayStack</a> 是另一种可变栈的实现，用一个可根据需要改变大小的数组做为支持。它提供了快速索引，使其通常在大多数的操作中会比普通的可变堆栈更高效一点。</p>
+<div class="note info">
+            <h2 id="哈希表"><a href="#哈希表" class="headerlink" title="哈希表"></a>哈希表</h2>
+          </div>
+<p>Hash Table 用一个底层数组来存储元素，每个数据项在数组中的存储位置由这个数据项的Hash Code 来决定。添加一个元素到Hash Table不用花费多少时间，只要数组中不存在与其含有相同Hash Code的另一个元素。因此，只要Hash Table能够根据一种良好的hash codes分配机制来存放对象，Hash Table的速度会非常快。所以在Scala中默认的可变map和set都是基于Hash Table的。你也可以直接用<a href="https://www.scala-lang.org/api/2.10.0/scala/collection/mutable/HashSet.html" target="_blank" rel="noopener">mutable.HashSet</a> 和 <a href="https://www.scala-lang.org/api/2.10.0/scala/collection/mutable/HashMap.html" target="_blank" rel="noopener">mutable.HashMap</a> 来访问它们。</p>
+<p>Hash Set 和 Map 的使用和其他的Set和Map是一样的。这里有一些简单的例子：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; <span class="keyword">val</span> map = scala.collection.mutable.<span class="type">HashMap</span>.empty[<span class="type">Int</span>,<span class="type">String</span>]</span><br><span class="line">map: scala.collection.mutable.<span class="type">HashMap</span>[<span class="type">Int</span>,<span class="type">String</span>] = <span class="type">Map</span>()</span><br><span class="line">scala&gt; map += (<span class="number">1</span> -&gt; <span class="string">"make a web site"</span>)</span><br><span class="line">res42: map<span class="class">.<span class="keyword">type</span> </span>= <span class="type">Map</span>(<span class="number">1</span> -&gt; make a web site)</span><br><span class="line">scala&gt; map += (<span class="number">3</span> -&gt; <span class="string">"profit!"</span>)</span><br><span class="line">res43: map<span class="class">.<span class="keyword">type</span> </span>= <span class="type">Map</span>(<span class="number">1</span> -&gt; make a web site, <span class="number">3</span> -&gt; profit!)</span><br><span class="line">scala&gt; map(<span class="number">1</span>)</span><br><span class="line">res44: <span class="type">String</span> = make a web site</span><br><span class="line">scala&gt; map contains <span class="number">2</span></span><br><span class="line">res46: <span class="type">Boolean</span> = <span class="literal">false</span></span><br></pre></td></tr></tbody></table></figure>
+<p>Hash Table的迭代并不是按特定的顺序进行的。它是按任何可能的顺序，依次处理底层数组的数据。为了保证迭代的次序，可以使用一个Linked Hash Map 或 Set 来做为替代。Linked Hash Map 或 Set 像标准的Hash Map 或 Set一样，只不过它包含了一个Linked List,其中的元素按添加的顺序排列。在这种容器中的迭代都是具有相同的顺序，就是按照元素最初被添加的顺序进行迭代。</p>
+<div class="note danger">
+            <h2 id="Weak-Hash-Maps"><a href="#Weak-Hash-Maps" class="headerlink" title="Weak Hash Maps"></a>Weak Hash Maps</h2>
+          </div>
+<p>Weak Hash Map 是一种特殊的Hash Map，垃圾回收器会忽略从Map到存储在其内部的Key值的链接。这也就是说，当一个key不再被引用的时候，这个键和对应的值会从map中消失。Weak Hash Map 可以用来处理缓存，比如当一个方法被同一个键值重新调用时，你想重用这个大开销的方法返回值。如果Key值和方法返回值存储在一个常规的Hash Map里，Map会无限制的扩展，Key值也永远不会被垃圾回收器回收。用Weak Hash Map会避免这个问题。一旦有一个Key对象不再被引用，那它的实体会从Weak Hash Map中删除。在Scala中，<a href="https://www.scala-lang.org/api/2.10.0/scala/collection/mutable/WeakHashMap.html" target="_blank" rel="noopener">WeakHashMap</a>类是Weak Hash Map的实现类，封装了底层的Java实现类<code>java.util.WeakHashMap</code>。</p>
+<div class="note success">
+            <h2 id="Concurrent-Maps"><a href="#Concurrent-Maps" class="headerlink" title="Concurrent Maps"></a>Concurrent Maps</h2>
+          </div>
+<p>Concurrent Map可以同时被多个线程访问。除了<a href="https://www.scala-lang.org/api/2.10.0/scala/collection/Map.html" target="_blank" rel="noopener">Map</a>的通用方法，它提供了下列的原子方法：</p>
+<h3 id="Concurrent-Map类中的方法："><a href="#Concurrent-Map类中的方法：" class="headerlink" title="Concurrent Map类中的方法："></a>Concurrent Map类中的方法：</h3><table>
+<thead>
+<tr>
+<th>WHAT IT IS</th>
+<th>WHAT IT DOES</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>m putIfAbsent(k, v)</td>
+<td>添加 键/值 绑定 k -&gt; m ，如果k在m中没有被定义过</td>
+</tr>
+<tr>
+<td>m remove (k, v)</td>
+<td>如果当前 k 映射于 v，删除k对应的实体。</td>
+</tr>
+<tr>
+<td>m replace (k, old, new)</td>
+<td>如果k先前绑定的是old，则把键k 关联的值替换为new。</td>
+</tr>
+<tr>
+<td>m replace (k, v)</td>
+<td>如果k先前绑定的是其他值，则把键k对应的值替换为v</td>
+</tr>
+</tbody>
+</table>
+<p><code>ConcurrentMap</code>体现了Scala容器库的特性。目前，它的实现类只有Java的<code>java.util.concurrent.ConcurrentMap</code>, 它可以用<a href="https://docs.scala-lang.org/overviews/collections/conversions-between-java-and-scala-collections.html" target="_blank" rel="noopener">standard Java/Scala collection conversions</a>(标准的java/Scala容器转换器)来自动转换成一个Scala map。</p>
+<div class="note info">
+            <h2 id="Mutable-Bitsets"><a href="#Mutable-Bitsets" class="headerlink" title="Mutable Bitsets"></a>Mutable Bitsets</h2>
+          </div>
+<p>一个类型为<a href="https://www.scala-lang.org/api/2.10.0/scala/collection/mutable/BitSet.html" target="_blank" rel="noopener">mutable.BitSet</a>的可变bit集合和不可变的bit集合很相似，它只是做了适当的修改。Mutable bit sets在更新的操作上比不可变bit set 效率稍高，因为它不必复制没有发生变化的 Long值。</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; <span class="keyword">val</span> bits = scala.collection.mutable.<span class="type">BitSet</span>.empty</span><br><span class="line">bits: scala.collection.mutable.<span class="type">BitSet</span> = <span class="type">BitSet</span>()</span><br><span class="line">scala&gt; bits += <span class="number">1</span></span><br><span class="line">res49: bits<span class="class">.<span class="keyword">type</span> </span>= <span class="type">BitSet</span>(<span class="number">1</span>)</span><br><span class="line">scala&gt; bits += <span class="number">3</span></span><br><span class="line">res50: bits<span class="class">.<span class="keyword">type</span> </span>= <span class="type">BitSet</span>(<span class="number">1</span>, <span class="number">3</span>)</span><br><span class="line">scala&gt; bits</span><br><span class="line">res51: scala.collection.mutable.<span class="type">BitSet</span> = <span class="type">BitSet</span>(<span class="number">1</span>, <span class="number">3</span>)</span><br></pre></td></tr></tbody></table></figure>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/scala/" rel="tag"># scala</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/02/22/Scala-算法实现/" rel="prev" title="Scala 算法实现">
+      <i class="fa fa-chevron-left"></i> Scala 算法实现
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/02/24/lc-青蛙跳台阶/" rel="next" title="lc-青蛙跳台阶">
+      lc-青蛙跳台阶 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Array-Buffers"><span class="nav-number">1.</span> <span class="nav-text">Array Buffers</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#List-Buffers"><span class="nav-number">2.</span> <span class="nav-text">List Buffers</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#StringBuilders"><span class="nav-number">3.</span> <span class="nav-text">StringBuilders</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#链表"><span class="nav-number">4.</span> <span class="nav-text">链表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#双向链表"><span class="nav-number">5.</span> <span class="nav-text">双向链表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#可变列表"><span class="nav-number">6.</span> <span class="nav-text">可变列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#队列"><span class="nav-number">7.</span> <span class="nav-text">队列</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数组序列"><span class="nav-number">8.</span> <span class="nav-text">数组序列</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#堆栈"><span class="nav-number">9.</span> <span class="nav-text">堆栈</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数组堆栈"><span class="nav-number">10.</span> <span class="nav-text">数组堆栈</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#哈希表"><span class="nav-number">11.</span> <span class="nav-text">哈希表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Weak-Hash-Maps"><span class="nav-number">12.</span> <span class="nav-text">Weak Hash Maps</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Concurrent-Maps"><span class="nav-number">13.</span> <span class="nav-text">Concurrent Maps</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Concurrent-Map类中的方法："><span class="nav-number">13.1.</span> <span class="nav-text">Concurrent Map类中的方法：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Mutable-Bitsets"><span class="nav-number">14.</span> <span class="nav-text">Mutable Bitsets</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Freehuber" src="/images/avatar.gif">
+  <p class="site-author-name" itemprop="name">Freehuber</p>
+  <div class="site-description" itemprop="description">左手写诗，右手撸码</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">57</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">40</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/freehubs" title="GitHub → https://github.com/freehubs" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  © 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Freehuber</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  
+  
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+
+
+
+
+
+<script src="/bundle.js"></script><script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: '47209006cdab2e987d9e',
+      clientSecret: 'c7df73e28dcfcef507958f6cf2457857ac9776be',
+      repo: 'freehubs.github.io',
+      owner: 'freehubs',
+      admin: ['freehubs'],
+      id: '6520d7f083545bb2d0d606ba8cfe8ba1',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script></body></html>

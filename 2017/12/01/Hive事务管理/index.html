@@ -1,0 +1,791 @@
+<!DOCTYPE html><html lang="zh-Hans"><head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/1281.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/323.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/161.png">
+  <link rel="mask-icon" href="/images/atom.svg" color="#222">
+
+
+
+
+
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://freehubs.github.io').hostname,
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.7.1',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="简介            Hive作为Hadoop家族历史最悠久的组件之一，一直以其优秀的兼容性支持和稳定性而著称，越来越多的企业将业务数据从传统数据库迁移至Hadoop平台，并通过Hive来进行数据分析。但是我们在迁移的过程中难免会碰到如何将传统数据库的功能也迁移到Hadoop的问题，比如说事务。事务作为传统数据库很重要的一个功能，在Hive中是如何实现的呢？Hive">
+<meta name="keywords" content="hive,acid">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hive事务管理">
+<meta property="og:url" content="https://freehubs.github.io/2017/12/01/Hive事务管理/index.html">
+<meta property="og:site_name" content="Freehubs">
+<meta property="og:description" content="简介            Hive作为Hadoop家族历史最悠久的组件之一，一直以其优秀的兼容性支持和稳定性而著称，越来越多的企业将业务数据从传统数据库迁移至Hadoop平台，并通过Hive来进行数据分析。但是我们在迁移的过程中难免会碰到如何将传统数据库的功能也迁移到Hadoop的问题，比如说事务。事务作为传统数据库很重要的一个功能，在Hive中是如何实现的呢？Hive">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121055789375.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121056449113.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121056652164.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121057731335.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121058445186.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121058724922.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121059151954.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121059320973.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121059787723.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121059930373.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121060752594.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121060893595.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121061484874.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121061713652.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121063102376.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121063263012.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121064139828.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121064271722.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121065743030.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121065916525.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121066198138.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121066537536.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121066850801.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121067134496.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121067318880.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121067593291.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121067832545.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121068192695.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121068364921.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121068639301.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121068852336.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121069199763.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121069373565.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121069645501.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15121077401844.jpg">
+<meta property="og:updated_time" content="2020-09-09T04:36:35.745Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Hive事务管理">
+<meta name="twitter:description" content="简介            Hive作为Hadoop家族历史最悠久的组件之一，一直以其优秀的兼容性支持和稳定性而著称，越来越多的企业将业务数据从传统数据库迁移至Hadoop平台，并通过Hive来进行数据分析。但是我们在迁移的过程中难免会碰到如何将传统数据库的功能也迁移到Hadoop的问题，比如说事务。事务作为传统数据库很重要的一个功能，在Hive中是如何实现的呢？Hive">
+<meta name="twitter:image" content="http://oliji9s3j.bkt.clouddn.com/15121055789375.jpg">
+
+<link rel="canonical" href="https://freehubs.github.io/2017/12/01/Hive事务管理/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Hive事务管理 | Freehubs</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Freehubs" type="application/atom+xml">
+<script>function loadCss(l){var d=document,h=d.head,s=d.createElement('link');s.rel='stylesheet';s.href=l;!function e(f){if (d.body)return f();setTimeout(function(){e(f)})}(function(){h.appendChild(s);});}loadCss('/style.css');loadCss('//stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css');loadCss('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css');</script><noscript><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="//stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"><link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css"></noscript></head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Freehubs</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-数工">
+
+    <a href="/bigdata" rel="section">数工</a>
+
+  </li>
+        <li class="menu-item menu-item-面试">
+
+    <a href="/tags/offer/" rel="section">面试</a>
+
+  </li>
+        <li class="menu-item menu-item-算法">
+
+    <a href="/tags/algo/" rel="section">算法</a>
+
+  </li>
+        <li class="menu-item menu-item-gem">
+
+    <a href="/gem/" rel="section">GEM</a>
+
+  </li>
+        <li class="menu-item menu-item-生活">
+
+    <a href="/tags/life/" rel="section">生活</a>
+
+  </li>
+        <li class="menu-item menu-item-归档">
+
+    <a href="/archives/" rel="section">归档</a>
+
+  </li>
+        <li class="menu-item menu-item-标签">
+
+    <a href="/tags/" rel="section">标签</a>
+
+  </li>
+        <li class="menu-item menu-item-博客">
+
+    <a href="/categories/blog/" rel="section">博客</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger">Search
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="Searching..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope="" itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://freehubs.github.io/2017/12/01/Hive事务管理/">
+
+    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Freehuber">
+      <meta itemprop="description" content="左手写诗，右手撸码">
+    </span>
+
+    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Freehubs">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Hive事务管理<a href="https://github.com/freehubs/freehubs.github.io.source/tree/master/source/_posts/Hive事务管理.md" class="post-edit-link" title="Edit this post" rel="noopener" target="_blank"><i class="fa fa-pencil"></i></a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-12-01 11:30:06" itemprop="dateCreated datePublished" datetime="2017-12-01T11:30:06+00:00">2017-12-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-09-09 04:36:35" itemprop="dateModified" datetime="2020-09-09T04:36:35+00:00">2020-09-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/hive/" itemprop="url" rel="index">
+                    <span itemprop="name">hive</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <div class="note info">
+            <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2>
+          </div>
+<p>Hive作为Hadoop家族历史最悠久的组件之一，一直以其优秀的兼容性支持和稳定性而著称，越来越多的企业将业务数据从传统数据库迁移至Hadoop平台，并通过Hive来进行数据分析。但是我们在迁移的过程中难免会碰到如何将传统数据库的功能也迁移到Hadoop的问题，比如说事务。事务作为传统数据库很重要的一个功能，在Hive中是如何实现的呢？Hive的实现有什么不一样的地方呢？我们将传统数据库的应用迁移到Hive如果有事务相关的场景我们该如何去转换并要注意什么问题呢？</p>
+<p>本文会通过很多真实测试案例来比较Hive与传统数据库事务的区别，并在文末给出一些在Hive平台上使用事务相关的功能时的指导和建议。<br></p><div class="note info">
+            <h2 id="ACID与实现原理"><a href="#ACID与实现原理" class="headerlink" title="ACID与实现原理"></a>ACID与实现原理</h2>
+          </div><br>为了方便解释和说明后面的一些问题，这里重提传统数据库事务相关的概念，以下内容来源于网络。<p></p>
+<a id="more"></a>
+<h3 id="ACID说明"><a href="#ACID说明" class="headerlink" title="ACID说明"></a>ACID说明</h3><p>何为事务？就是一组单元化操作，这些操作要么都执行，要么都不执行，是一个不可分割的工作单位。</p>
+<p>事务（transaction）所应该具有的四个要素：原子性（Atomicity）、一致性（Consistency）、隔离性（Isolation）、持久性（Durability）。这四个基本要素通常称为ACID特性。</p>
+<ol>
+<li>原子性（Atomicity）:一个事务是一个不可再分割的工作单位，事务中的所有操作要么都发生，要么都不发生。</li>
+<li>一致性（Consistency）:事务开始之前和事务结束以后，数据库的完整性约束没有被破坏。这是说数据库事务不能破坏关系数据的完整性以及业务逻辑上的一致性。</li>
+<li>隔离性（Isolation）:多个事务并发访问，事务之间是隔离的，一个事务不影响其它事务运行效果。这指的是在并发环境中，当不同的事务同时操作相同的数据时，每个事务都有各自完整的数据空间。事务查看数据更新时，数据所处的状态要么是另一事务修改它之前的状态，要么是另一事务修改后的状态，事务不会查看到中间状态的数据。事务之间的相应影响，分别为：脏读、不可重复读、幻读、丢失更新。</li>
+<li>持久性（Durability）:意味着在事务完成以后，该事务锁对数据库所作的更改便持久的保存在数据库之中，并不会被回滚。</li>
+</ol>
+<h3 id="ACID的实现原理"><a href="#ACID的实现原理" class="headerlink" title="ACID的实现原理"></a>ACID的实现原理</h3><p>事务可以保证ACID原则的操作，那么事务是如何保证这些原则的？解决ACID问题的两大技术点是：</p>
+<ol>
+<li>预写日志（Write-ahead logging）保证原子性和持久性</li>
+<li>锁（locking）保证隔离性</li>
+</ol>
+<p>这里并没有提到一致性，是因为一致性是应用相关的话题，它的定义一个由业务系统来定义，什么样的状态才是一致？而实现一致性的代码通常在业务逻辑的代码中得以体现。</p>
+<p>注：锁是指在并发环境中通过读写锁来保证操作的互斥性。根据隔离程度不同，锁的运用也不同。<br></p><div class="note info">
+            <h2 id="测试环境"><a href="#测试环境" class="headerlink" title="测试环境"></a>测试环境</h2>
+          </div><p></p>
+<table>
+<thead>
+<tr>
+<th>操作系统</th>
+<th>CentOS 6.5</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>JDK</td>
+<td>jdk1.7.0_67</td>
+</tr>
+<tr>
+<td>CDH</td>
+<td>5.9</td>
+</tr>
+<tr>
+<td>Hadoop</td>
+<td>2.6.0</td>
+</tr>
+<tr>
+<td>Hive</td>
+<td>1.1.0</td>
+</tr>
+</tbody>
+</table>
+<div class="note info">
+            <h2 id="Hive的ACID测试"><a href="#Hive的ACID测试" class="headerlink" title="Hive的ACID测试"></a>Hive的ACID测试</h2>
+          </div>
+<h3 id="Hive中的锁（不开启事务）"><a href="#Hive中的锁（不开启事务）" class="headerlink" title="Hive中的锁（不开启事务）"></a>Hive中的锁（不开启事务）</h3><p>Hive中定义了两种锁的模式：共享锁（S）和排它锁（X），顾名思义，多个共享锁(S)可以同时获取，但是排它锁(X)会阻塞其它所有锁。在本次测试中，CDH5.9的Concurrency参数是默认开启的（hive.support.concurrency=true），以下分别对开启Concurrency和关闭进行相关测试。</p>
+<p>首先在测试之前，创建一个普通的hive表：</p>
+<figure class="highlight sql"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> test_notransaction(user_id <span class="built_in">Int</span>,<span class="keyword">name</span> <span class="keyword">String</span>);</span><br></pre></td></tr></tbody></table></figure>
+<p>向test_transaction表中插入测试数据：</p>
+<figure class="highlight sql"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test_notransaction <span class="keyword">values</span>(<span class="number">1</span>,<span class="string">'peach1'</span>),(<span class="number">2</span>,<span class="string">'peach2'</span>),(<span class="number">3</span>, <span class="string">'peach3'</span>),(<span class="number">4</span>, <span class="string">'peach4'</span>);</span><br></pre></td></tr></tbody></table></figure>
+<p>查看插入的数据：</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121055789375.jpg" alt=""></p>
+<h4 id="开启Concurrency"><a href="#开启Concurrency" class="headerlink" title="开启Concurrency"></a>开启Concurrency</h4><p>1、对catalog_sales表进行并发select操作</p>
+<p>执行的sql语句：select count(*) from catalog_sales;</p>
+<p>执行单条sql查询时，获取一个共享锁（S），sql语句正常执行</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121056449113.jpg" alt=""></p>
+<p>同时执行两条sql查询是，获取两个共享锁，并且sql语句均正常执行</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121056652164.jpg" alt=""></p>
+<p><strong>分析</strong>：由此对比可得出hive在执行sql查询时获取Share锁，在并发的情况下可获取多个共享锁。</p>
+<p>2、对test表进行并发Insert操作</p>
+<p>创建表：</p>
+<figure class="highlight sql"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> <span class="keyword">test</span>(<span class="keyword">name</span> <span class="keyword">string</span>, <span class="keyword">id</span> <span class="built_in">int</span>);</span><br></pre></td></tr></tbody></table></figure>
+<p>执行sql语句：</p>
+<figure class="highlight sql"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> <span class="keyword">test</span> <span class="keyword">values</span>(<span class="string">'test11aaa1'</span>,<span class="number">1252</span>); </span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> <span class="keyword">test</span> <span class="keyword">values</span>(<span class="string">'test1'</span>,<span class="number">52</span>);</span><br></pre></td></tr></tbody></table></figure>
+<p>执行单条insert语句时，获取一个X锁，sql语句正常执行</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121057731335.jpg" alt=""></p>
+<p>同时执行两条insert语句时，只能获取一个test表X锁，第一条insert语句正常执行，第二条insert语句处于等待状态，在第一条insert语句释放test表的X锁，第二条sql语句正常执行.</p>
+<p><strong>分析</strong>：由此对比可得出hive在执行insert操作时，只能获取一个X锁且锁不能共享，只能在sql执行完成释放锁后，后续sql方可继续执行。</p>
+<p>3、对test表执行select的同时执行insert操作</p>
+<p>执行sql语句：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">select count(*) from test; </span><br><span class="line">insert into test values("test123",123);</span><br></pre></td></tr></tbody></table></figure>
+<p>步骤：</p>
+<p>1) 执行select语句，在select未运行完时，在新的窗口同时执行insert语句观察两条sql执行情况，select语句正常执行，insert语句处于等待状态。</p>
+<p>2) 此时查看test表锁状态</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121058445186.jpg" alt=""></p>
+<p>在步骤1的执行过程中，获取到test表的锁为共享锁（S）</p>
+<p>3) 在select语句执行完成后，观察insert语句开始正常执行，此时获取test表锁为排它锁（X）。注意：在select语句执行完成后，大概过40s左右insert语句才正常执行，这是由hive.lock.sleep.between.retries参数控制，默认60</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121058724922.jpg" alt=""></p>
+<p><strong>分析</strong>： 由上述操作可得出，hive中一个表只能有一个排它锁(X)且锁不能共享，在获取排它锁时，表上不能有其它锁包括共享锁(S)，只有在表上所有的锁都释放后，insert操作才能继续，否则处于等待状态。</p>
+<p>对注意部分进行参数调整，将hive.lock.sleep.between.retries设置为10s，再次进行测试发现，在select语句执行完成后，大概过6s左右insert语句开始执行,通过两次测试发现，等待时间均在10s以内，由此可以得出此参数影响sql操作获取锁的间隔（在未获取到锁的情况下），如果此时未到获取锁触发周期，执行其它sql则，该sql会优于等待的sql执行。</p>
+<p>4、对test表执行insert的同时执行select操作</p>
+<p>执行sql语句：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">insert into test values("test123",123); </span><br><span class="line">select count(*) from test;</span><br></pre></td></tr></tbody></table></figure>
+<p>操作步骤：</p>
+<p>1) 在命令窗口执行insert语句，在insert操作未执行完成时，在新的命令窗口执行select语句，观察两个窗口的sql执行情况，insert语句正常执行，select语句处于等待状态。</p>
+<p>2) 此时查看test表锁状态，只有insert操作获取的排它锁（X）</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121059151954.jpg" alt=""></p>
+<p>3) 在insert语句执行完成后，观察select语句开始正常执行，此时查看test表锁状态为共享锁（S），之前的insert操作获取的排它锁（X）已被释放</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121059320973.jpg" alt=""></p>
+<p><strong>分析</strong>：在test表锁状态为排它锁(X)时，所有的操作均被阻塞处于等待状态，只有在排它锁(X)释放其它操作可继续进行。</p>
+<p>5、测试update和delete修改test表数据</p>
+<p>sql语句：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">update test set name='aaaa' where id=1252; </span><br><span class="line">delete test set name='bbbb' where id=123;</span><br></pre></td></tr></tbody></table></figure>
+<p>1) 表中数据，更新前</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121059787723.jpg" alt=""></p>
+<p>2) 在beeline窗口执行update操作</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121059930373.jpg" alt=""></p>
+<p>执行update操作报错，异常提示“Attempt to do update or delete using transaction manager that does not support these operations”，在非事务模式下不支持update 和 delete。</p>
+<h4 id="关闭Concurrency"><a href="#关闭Concurrency" class="headerlink" title="关闭Concurrency"></a>关闭Concurrency</h4><p>1、执行insert操作的同时执行select操作</p>
+<p>sql语句：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">insert into test_notransaction values(1,'peach1'),(2,'peach2'),(3, 'peach3'),(4, 'peach4'); </span><br><span class="line">select count(*) from test_notransaction;</span><br></pre></td></tr></tbody></table></figure>
+<p>操作sql前，查看表数据</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121060752594.jpg" alt=""></p>
+<p>查看test_notransaction表获取情况，show locks;</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121060893595.jpg" alt=""></p>
+<p>hive在未开启concurrency 的情况下,show locks不能正常获取表的锁，同时对同一张表执行insert和select操作时并发执行，获取数据取决于sql执行速度，因此在select 的时候未获取到插入数据。</p>
+<p>2、执行select操作的同时执行insert操作</p>
+<p>sql语句：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">select count(*) from test_notransaction; </span><br><span class="line">insert into test_notransaction values(1,'peach1'),(2,'peach2'),(3, 'peach3'),(4, 'peach4');</span><br></pre></td></tr></tbody></table></figure>
+<p>在执行select的同时执行insert操作，操作可以同时并行操作，未产生阻塞等待的过程。</p>
+<p>3、同时执行多条insert操作</p>
+<p>sql语句：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">insert into test_notransaction values(1,'peach1'),(2,'peach2'),(3, 'peach3'),(4, 'peach4'); </span><br><span class="line">insert into test_notransaction values(1,'peach1'),(2,'peach2'),(3, 'peach3'),(4, 'peach4');</span><br></pre></td></tr></tbody></table></figure>
+<p>同时执行insert操作时，可同时执行未产生阻塞等待的过程。</p>
+<p>4、执行update操作，将表中user_id为2的用户名修改为peach22</p>
+<p>sql语句：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">update test_notransaction set name='peach22' where user_id=2;</span><br></pre></td></tr></tbody></table></figure>
+<p>执行update操作，执行结果如下：</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121061484874.jpg" alt=""></p>
+<p>在未配置hive的Transaction和ACID时，不支持update操作。</p>
+<p>5、执行delete操作，将表中user_id为1信息删除</p>
+<p>sql语句：</p>
+<figure class="highlight sql"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> test_notransaction <span class="keyword">where</span> user_id=<span class="number">1</span>;</span><br></pre></td></tr></tbody></table></figure>
+<p>执行delete操作，执行结果如下：</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121061713652.jpg" alt=""></p>
+<p>hive未配置Transaction和ACID，不支持delete操作。</p>
+<p>6、查看表获取锁类型</p>
+<figure class="highlight sql"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> locks;</span><br></pre></td></tr></tbody></table></figure>
+<p>无法正常执行；</p>
+<h3 id="Hive的事务"><a href="#Hive的事务" class="headerlink" title="Hive的事务"></a>Hive的事务</h3><h4 id="Hive的事务配置"><a href="#Hive的事务配置" class="headerlink" title="Hive的事务配置"></a>Hive的事务配置</h4><p>Hive从0.13开始加入了事务支持，在行级别提供完整的ACID特性，Hive在0.14时加入了对INSERT…VALUES,UPDATE,and DELETE的支持。对于在Hive中使用ACID和Transactions，主要有以下限制：</p>
+<ul>
+<li>不支持BEGIN,COMMIT和ROLLBACK</li>
+<li>只支持ORC文件格式</li>
+<li>表必须分桶</li>
+<li>不允许从一个非ACID连接写入/读取ACID表</li>
+</ul>
+<p>为了使Hive支持事务操作，需将以下参数加入到hive-site.xml文件中。</p>
+<figure class="highlight xml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">name</span>&gt;</span>hive.support.concurrency<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">value</span>&gt;</span>true<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">name</span>&gt;</span>hive.enforce.bucketing<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">value</span>&gt;</span>true<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">name</span>&gt;</span>hive.exec.dynamic.partition.mode<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">value</span>&gt;</span>nonstrict<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">name</span>&gt;</span>hive.txn.manager<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">value</span>&gt;</span>org.apache.hadoop.hive.ql.lockmgr.DbTxnManager<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">name</span>&gt;</span>hive.compactor.initiator.on<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">value</span>&gt;</span>true<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">name</span>&gt;</span>hive.compactor.worker.threads <span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">value</span>&gt;</span>1<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br></pre></td></tr></tbody></table></figure>
+<p>可以在Cloudera Manager进行以下配置：</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121063102376.jpg" alt=""></p>
+<p>为了让beeline支持还需要配置：</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121063263012.jpg" alt=""></p>
+<h4 id="Hive事务测试"><a href="#Hive事务测试" class="headerlink" title="Hive事务测试"></a>Hive事务测试</h4><h5 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h5><p>1、创建一个支持ACID的表</p>
+<p>建表语句：</p>
+<figure class="highlight sql"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> test_trancaction </span><br><span class="line">(user_id <span class="built_in">Int</span>,<span class="keyword">name</span> <span class="keyword">String</span>) </span><br><span class="line">clustered <span class="keyword">by</span> (user_id) <span class="keyword">into</span> <span class="number">3</span> buckets <span class="keyword">stored</span> <span class="keyword">as</span> orc TBLPROPERTIES (<span class="string">'transactional'</span>=<span class="string">'true'</span>);</span><br></pre></td></tr></tbody></table></figure>
+<p>将表名修改为test_transaction</p>
+<figure class="highlight sql"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> test_trancaction <span class="keyword">rename</span> <span class="keyword">to</span> test_transaction;</span><br></pre></td></tr></tbody></table></figure>
+<p>2、准备测试数据，向数据库中插入数据</p>
+<figure class="highlight sql"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test_transaction <span class="keyword">values</span>(<span class="number">1</span>,<span class="string">'peach'</span>),(<span class="number">2</span>,<span class="string">'peach2'</span>),(<span class="number">3</span>,<span class="string">'peach3'</span>),(<span class="number">4</span>,<span class="string">'peach4'</span>),(<span class="number">5</span>,<span class="string">'peach5'</span>);</span><br></pre></td></tr></tbody></table></figure>
+<h5 id="用例测试"><a href="#用例测试" class="headerlink" title="用例测试"></a>用例测试</h5><p>1、执行update操作，将user_id的name修改为peach_update</p>
+<p>sql语句：</p>
+<figure class="highlight sql"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">update</span> test_transaction <span class="keyword">set</span> <span class="keyword">name</span>=<span class="string">'peach_update'</span> <span class="keyword">where</span> user_id=<span class="number">1</span>;</span><br></pre></td></tr></tbody></table></figure>
+<p>执行修改操作，查看表获取锁类型</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121064139828.jpg" alt=""></p>
+<p>数据修改成功，且不影响其它数据。</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121064271722.jpg" alt=""></p>
+<p>2、同时修改同一条数据，将user_id为1的用户名字修改为peach，另一条sql将名字修改为peach_</p>
+<p>sql语句：</p>
+<figure class="highlight sql"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">update</span> test_transaction <span class="keyword">set</span> <span class="keyword">name</span>=<span class="string">'peach'</span> <span class="keyword">where</span> user_id=<span class="number">1</span>;</span><br><span class="line"><span class="keyword">update</span> test_transaction <span class="keyword">set</span> <span class="keyword">name</span>=<span class="string">'peach_'</span> <span class="keyword">where</span> user_id=<span class="number">1</span>;</span><br></pre></td></tr></tbody></table></figure>
+<p>sql执行顺序为peach，其次为peach_</p>
+<p>此时查看表获取到的锁</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121065743030.jpg" alt=""></p>
+<p>通过获取到锁分析，在同时修改同一条数据时，优先执行的sql获取到了SHARED_WRITE，而后执行的sql获取锁的状态为WAITING状态，表示还未获取到SHARED_WRITE锁，等待第一条sql执行结束后方可获取到锁对数据进行操作。</p>
+<p>通过上不执行操作分析，数据user_id为1的用户名字应被修改为peach_</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121065916525.jpg" alt=""></p>
+<p>3、同时修改不同数据，修改id为2的name为peachtest，修改id为3的name为peach_test</p>
+<p>sql语句：</p>
+<figure class="highlight sql"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">update</span> test_transaction <span class="keyword">set</span> <span class="keyword">name</span>=<span class="string">'peachtest'</span> <span class="keyword">where</span> user_id=<span class="number">2</span>; </span><br><span class="line"><span class="keyword">update</span> test_transaction <span class="keyword">set</span> <span class="keyword">name</span>=<span class="string">'peach_test'</span> <span class="keyword">where</span> user_id=<span class="number">3</span>;</span><br></pre></td></tr></tbody></table></figure>
+<p>sql执行顺序为peachtest，其次为peach_test</p>
+<p>此时查看表获取到的锁</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121066198138.jpg" alt=""></p>
+<p>通过sql操作获取锁分析，在同时修改不同数据时，优先执行的sql获取到了SHARED_WRITE，而后执行的sql获取锁的状态为WAITING状态，表示还未获取到SHARED_WRITE锁，等待第一条sql执行结束后方可获取到锁对数据进行操作。</p>
+<p>4、执行select操作的同时执行insert操作</p>
+<p>sql语句：</p>
+<figure class="highlight sql"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">count</span>(*) <span class="keyword">from</span> test_transaction; </span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test_transaction <span class="keyword">values</span>(<span class="number">3</span>,<span class="string">'peach3'</span>);</span><br></pre></td></tr></tbody></table></figure>
+<p>步骤：</p>
+<p>先执行select操作，再执行insert操作，执行完成后查看表获取到的锁</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121066537536.jpg" alt=""></p>
+<p>由于select和insert操作均获取的是SHARED_READ锁，读锁为并行，所以select查询和insert同时执行，互不影响。</p>
+<p>5、update同一条数据的同时select该条数据</p>
+<p>sql语句：</p>
+<figure class="highlight sql"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">update</span> test_transaction <span class="keyword">set</span> <span class="keyword">name</span>=<span class="string">'peach_update'</span> <span class="keyword">where</span> user_id=<span class="number">1</span>; <span class="keyword">select</span> * <span class="keyword">from</span></span><br><span class="line"> test_transaction <span class="keyword">where</span> user_id=<span class="number">1</span>;</span><br></pre></td></tr></tbody></table></figure>
+<p>步骤：</p>
+<p>先执行update操作，再执行select操作，获取此时表获取到的锁</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121066850801.jpg" alt=""></p>
+<p>通过获取锁的情况分析， 在update操作时，获取到SHARED_WRITE锁，执行select操作时获取到SHARED_READ锁，在进行修改数据时未阻塞select查询操作，update未执行完成时，select查询到的数据为未修改的数据。</p>
+<p>6、执行delete操作，将user_id为3的数据删除</p>
+<p>sql语句：</p>
+<figure class="highlight sql"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> test_transaction <span class="keyword">where</span> user_id=<span class="number">3</span>;</span><br></pre></td></tr></tbody></table></figure>
+<p>步骤：</p>
+<p>执行delete操作，获取此时表获取到的锁</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121067134496.jpg" alt=""></p>
+<p>删除操作获取到的是SHARED_WRITE锁</p>
+<p>执行成功后数据</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121067318880.jpg" alt=""></p>
+<p>7、同时delete同一条数据</p>
+<p>sql语句：</p>
+<figure class="highlight sql"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> test_transaction <span class="keyword">where</span> user_id=<span class="number">3</span>;</span><br><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> test_transaction <span class="keyword">where</span> user_id=<span class="number">3</span>;</span><br></pre></td></tr></tbody></table></figure>
+<p>步骤：</p>
+<p>按顺序执行两条delete操作，查看此时表获取到的锁：</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121067593291.jpg" alt=""></p>
+<p>通过查看delete操作获取到的锁，优先执行的操作获取到SHARED_WRITE锁，后执行的delete操作未获取到SHARED_WRITE锁，处于WAITING状态。</p>
+<p>执行删除后结果</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121067832545.jpg" alt=""></p>
+<p>8、同时delete两条不同的数据</p>
+<p>sql语句：</p>
+<figure class="highlight sql"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> test_transaction <span class="keyword">where</span> user_id=<span class="number">1</span>; </span><br><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> test_transaction <span class="keyword">where</span> user_id=<span class="number">5</span>;</span><br></pre></td></tr></tbody></table></figure>
+<p>步骤：</p>
+<p>按顺序执行两条delete操作，查看此时表获取到的锁：</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121068192695.jpg" alt=""></p>
+<p>通过查看delete操作获取到的锁，优先执行的操作获取到SHARED_WRITE锁，后执行的delete操作未获取到SHARED_WRITE锁，处于WAITING状态。</p>
+<p>执行删除后结果</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121068364921.jpg" alt=""></p>
+<p>9、执行delete的同时对删除的数据进行update操作</p>
+<p>sql语句：</p>
+<figure class="highlight sql"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> test_transaction <span class="keyword">where</span> user_id=<span class="number">3</span>; </span><br><span class="line"><span class="keyword">update</span> test_transaction <span class="keyword">set</span> <span class="keyword">name</span>=<span class="string">'test'</span> <span class="keyword">where</span> user_id=<span class="number">3</span>;</span><br></pre></td></tr></tbody></table></figure>
+<p>步骤：</p>
+<p>按顺序执行两条sql，查看此时获取到表的锁：</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121068639301.jpg" alt=""></p>
+<p>通过查看delete和update操作获取到的锁，优先执行的操作获取到SHARED_WRITE锁，后执行的操作未获取到SHARED_WRITE锁，处于WAITING状态。</p>
+<p>执行delete和update后结果</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121068852336.jpg" alt=""></p>
+<p><strong>注意</strong>：此处在delete优先于update执行，但执行结果为update的结果，执行异常。</p>
+<p>10、执行delete的同时对不同的数据进行update操作</p>
+<p>sql语句：</p>
+<figure class="highlight sql"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> test_transaction <span class="keyword">where</span> user_id=<span class="number">2</span>; </span><br><span class="line"><span class="keyword">update</span> test_transaction <span class="keyword">set</span> <span class="keyword">name</span>=<span class="string">'test'</span> <span class="keyword">where</span> user_id=<span class="number">4</span>;</span><br></pre></td></tr></tbody></table></figure>
+<p>步骤：</p>
+<p>按顺序执行上面两条sql，查看表锁获取情况</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121069199763.jpg" alt=""></p>
+<p>通过查看delete和update操作获取到的锁，优先执行的操作获取到SHARED_WRITE锁，后执行的操作未获取到SHARED_WRITE锁，处于WAITING状态。</p>
+<p>执行delete和update后结果,执行结果正常</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121069373565.jpg" alt=""></p>
+<p>11、执行delete的同时执行select操作</p>
+<p>sql语句：</p>
+<figure class="highlight sql"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> test_transaction <span class="keyword">where</span> user_id=<span class="number">4</span>; </span><br><span class="line"><span class="keyword">select</span> <span class="keyword">count</span>(*) <span class="keyword">from</span> test_transaction;</span><br></pre></td></tr></tbody></table></figure>
+<p>步骤：</p>
+<p>按顺序执行上面两条sql，查看表锁获取情况</p>
+<p><img src="http://oliji9s3j.bkt.clouddn.com/15121069645501.jpg" alt=""></p>
+<p>在操作delete的同时执行select操作，两个操作均同时获取到SHARED_RED和SHARED_WRITE锁，操作并行进行未出现阻塞。<br></p><div class="note info">
+            <h2 id="总结对比"><a href="#总结对比" class="headerlink" title="总结对比"></a>总结对比</h2>
+          </div><br><img src="http://oliji9s3j.bkt.clouddn.com/15121077401844.jpg" alt=""><br><div class="note info">
+            <h2 id="Hive事务使用建议"><a href="#Hive事务使用建议" class="headerlink" title="Hive事务使用建议"></a>Hive事务使用建议</h2>
+          </div><p></p>
+<ol>
+<li>传统数据库中有三种模型隐式事务、显示事务和自动事务。在目前Hive对事务仅支持自动事务，因此Hive无法通过显示事务的方式对一个操作序列进行事务控制。</li>
+<li>传统数据库事务在遇到异常情况可自动进行回滚，目前Hive无法支持ROLLBACK。</li>
+<li>传统数据库中支持事务并发，而Hive对事务无法做到完全并发控制,多个操作均需要获取WRITE的时候则这些操作为串行模式执行（在测试用例中”delete同一条数据的同时update该数据”，操作是串行的且操作完成后数据未被删除且数据被修改）未保证数据一致性。</li>
+<li>Hive的事务功能尚属于实验室功能，并不建议用户直接上生产系统，因为目前它还有诸多的限制，如只支持ORC文件格式，建表必须分桶等，使用起来没有那么方便，另外该功能的稳定性还有待进一步验证。</li>
+<li>CDH默认开启了Hive的Concurrency功能，主要是对并发读写的的时候通过锁进行了控制。所以为了防止用户在使用Hive的时候，报错提示该表已经被lock，对于用户来说不友好，建议在业务侧控制一下写入和读取，比如写入同一个table或者partition的时候保证是单任务写入，其他写入需控制写完第一个任务了，后面才继续写，并且控制在写的时候不让用户进行查询。另外需要控制在查询的时候不要允许有写入操作。</li>
+<li>如果对于数据一致性不在乎，可以完全关闭Hive的Concurrency功能关闭，即设置hive.support.concurrency为false，这样Hive的并发读写将没有任何限制。</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/hive/" rel="tag"># hive</a>
+              <a href="/tags/acid/" rel="tag"># acid</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/11/30/SparkSQL-Catalyst优化理解/" rel="prev" title="SparkSQL-Catalyst优化理解">
+      <i class="fa fa-chevron-left"></i> SparkSQL-Catalyst优化理解
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/12/07/Hexo 优化-使用 AppVeyor 进行部署/" rel="next" title="Hexo + AppVeyor 持续集成">
+      Hexo + AppVeyor 持续集成 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ACID与实现原理"><span class="nav-number">2.</span> <span class="nav-text">ACID与实现原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ACID说明"><span class="nav-number">2.1.</span> <span class="nav-text">ACID说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ACID的实现原理"><span class="nav-number">2.2.</span> <span class="nav-text">ACID的实现原理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#测试环境"><span class="nav-number">3.</span> <span class="nav-text">测试环境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hive的ACID测试"><span class="nav-number">4.</span> <span class="nav-text">Hive的ACID测试</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Hive中的锁（不开启事务）"><span class="nav-number">4.1.</span> <span class="nav-text">Hive中的锁（不开启事务）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#开启Concurrency"><span class="nav-number">4.1.1.</span> <span class="nav-text">开启Concurrency</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#关闭Concurrency"><span class="nav-number">4.1.2.</span> <span class="nav-text">关闭Concurrency</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Hive的事务"><span class="nav-number">4.2.</span> <span class="nav-text">Hive的事务</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Hive的事务配置"><span class="nav-number">4.2.1.</span> <span class="nav-text">Hive的事务配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Hive事务测试"><span class="nav-number">4.2.2.</span> <span class="nav-text">Hive事务测试</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#环境准备"><span class="nav-number">4.2.2.1.</span> <span class="nav-text">环境准备</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#用例测试"><span class="nav-number">4.2.2.2.</span> <span class="nav-text">用例测试</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结对比"><span class="nav-number">5.</span> <span class="nav-text">总结对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hive事务使用建议"><span class="nav-number">6.</span> <span class="nav-text">Hive事务使用建议</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Freehuber" src="/images/avatar.gif">
+  <p class="site-author-name" itemprop="name">Freehuber</p>
+  <div class="site-description" itemprop="description">左手写诗，右手撸码</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">57</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">40</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/freehubs" title="GitHub → https://github.com/freehubs" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  © 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Freehuber</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  
+  
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+
+
+
+
+
+<script src="/bundle.js"></script><script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: '47209006cdab2e987d9e',
+      clientSecret: 'c7df73e28dcfcef507958f6cf2457857ac9776be',
+      repo: 'freehubs.github.io',
+      owner: 'freehubs',
+      admin: ['freehubs'],
+      id: '46dbbdd538dfb4665a58b210f643d4f3',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script></body></html>

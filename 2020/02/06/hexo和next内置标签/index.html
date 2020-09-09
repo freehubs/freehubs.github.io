@@ -1,0 +1,668 @@
+<!DOCTYPE html><html lang="zh-Hans"><head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/1281.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/323.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/161.png">
+  <link rel="mask-icon" href="/images/atom.svg" color="#222">
+
+
+
+
+
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://freehubs.github.io').hostname,
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.7.1',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="keywords" content="hexo,next">
+<meta property="og:type" content="article">
+<meta property="og:title" content="hexo和next内置标签">
+<meta property="og:url" content="https://freehubs.github.io/2020/02/06/hexo和next内置标签/index.html">
+<meta property="og:site_name" content="Freehubs">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://raw.githubusercontent.com/stanxia/blog-pics/master/20200206122722.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/stanxia/blog-pics/master/20200222180450.png">
+<meta property="og:updated_time" content="2020-09-09T04:36:35.749Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="hexo和next内置标签">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/stanxia/blog-pics/master/20200206122722.png">
+
+<link rel="canonical" href="https://freehubs.github.io/2020/02/06/hexo和next内置标签/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>hexo和next内置标签 | Freehubs</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Freehubs" type="application/atom+xml">
+<script>function loadCss(l){var d=document,h=d.head,s=d.createElement('link');s.rel='stylesheet';s.href=l;!function e(f){if (d.body)return f();setTimeout(function(){e(f)})}(function(){h.appendChild(s);});}loadCss('/style.css');loadCss('//stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css');loadCss('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css');</script><noscript><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="//stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"><link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css"></noscript></head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Freehubs</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-数工">
+
+    <a href="/bigdata" rel="section">数工</a>
+
+  </li>
+        <li class="menu-item menu-item-面试">
+
+    <a href="/tags/offer/" rel="section">面试</a>
+
+  </li>
+        <li class="menu-item menu-item-算法">
+
+    <a href="/tags/algo/" rel="section">算法</a>
+
+  </li>
+        <li class="menu-item menu-item-gem">
+
+    <a href="/gem/" rel="section">GEM</a>
+
+  </li>
+        <li class="menu-item menu-item-生活">
+
+    <a href="/tags/life/" rel="section">生活</a>
+
+  </li>
+        <li class="menu-item menu-item-归档">
+
+    <a href="/archives/" rel="section">归档</a>
+
+  </li>
+        <li class="menu-item menu-item-标签">
+
+    <a href="/tags/" rel="section">标签</a>
+
+  </li>
+        <li class="menu-item menu-item-博客">
+
+    <a href="/categories/blog/" rel="section">博客</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger">Search
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="Searching..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope="" itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://freehubs.github.io/2020/02/06/hexo和next内置标签/">
+
+    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Freehuber">
+      <meta itemprop="description" content="左手写诗，右手撸码">
+    </span>
+
+    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Freehubs">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          hexo和next内置标签<a href="https://github.com/freehubs/freehubs.github.io.source/tree/master/source/_posts/hexo和next内置标签.md" class="post-edit-link" title="Edit this post" rel="noopener" target="_blank"><i class="fa fa-pencil"></i></a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-02-06 12:26:00" itemprop="dateCreated datePublished" datetime="2020-02-06T12:26:00+00:00">2020-02-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-09-09 04:36:35" itemprop="dateModified" datetime="2020-09-09T04:36:35+00:00">2020-09-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/blog/" itemprop="url" rel="index">
+                    <span itemprop="name">blog</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><img src="https://raw.githubusercontent.com/stanxia/blog-pics/master/20200206122722.png" alt=""></p>
+<a id="more"></a>
+<h2 id="Note"><a href="#Note" class="headerlink" title="Note"></a>Note</h2><p>标签使用</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">{% note class_name %} blabla {% endnote %}</span><br><span class="line">class_name:</span><br><span class="line">	- default</span><br><span class="line">	- primary</span><br><span class="line">	- success</span><br><span class="line">	- info</span><br><span class="line">	- warning </span><br><span class="line">	- danger</span><br></pre></td></tr></tbody></table></figure>
+<p>效果演示</p>
+<div class="note default">
+            <p>default </p>
+          </div>
+
+<div class="note primary">
+            <p>primary </p>
+          </div>
+<div class="note success">
+            <p>success </p>
+          </div>
+
+<div class="note info">
+            <p>info </p>
+          </div>
+<div class="note warning">
+            <p>warning </p>
+          </div>
+
+<div class="note danger">
+            <p>danger </p>
+          </div>
+<h2 id="Tabs"><a href="#Tabs" class="headerlink" title="Tabs"></a>Tabs</h2><p>标签使用</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">{% tabs unique_name,default_index %}</span><br><span class="line">&lt;!-- tab [tag_name] --&gt;</span><br><span class="line">这是tab1</span><br><span class="line">&lt;!-- endtab --&gt;</span><br><span class="line">&lt;!-- tab [tag_name] --&gt;</span><br><span class="line">这是tab2</span><br><span class="line">&lt;!-- endtab --&gt;</span><br><span class="line">...</span><br><span class="line">{% endtabs %}</span><br></pre></td></tr></tbody></table></figure>
+<p>效果演示</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">{% tabs code,1 %}</span><br><span class="line">&lt;!-- tab java --&gt;</span><br><span class="line">java code</span><br><span class="line">&lt;!-- endtab --&gt;</span><br><span class="line">&lt;!-- tab scala --&gt;</span><br><span class="line">scala code</span><br><span class="line">&lt;!-- endtab --&gt;</span><br><span class="line">&lt;!-- tab python --&gt;</span><br><span class="line">python code</span><br><span class="line">&lt;!-- endtab --&gt;</span><br><span class="line">{% endtabs %}</span><br></pre></td></tr></tbody></table></figure>
+<div class="tabs" id="code"><ul class="nav-tabs"><li class="tab active"><a href="#code-1">java</a></li><li class="tab"><a href="#code-2">scala</a></li><li class="tab"><a href="#code-3">python</a></li></ul><div class="tab-content"><div class="tab-pane active" id="code-1"><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">public class Hello{</span><br><span class="line">  //</span><br><span class="line">}</span><br><span class="line"></span><br></pre></td></tr></tbody></table></figure></div><div class="tab-pane" id="code-2"><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">object Hello{</span><br><span class="line">  //</span><br><span class="line">}</span><br><span class="line"></span><br></pre></td></tr></tbody></table></figure></div><div class="tab-pane" id="code-3">undefined</div></div></div>
+<h2 id="Block-Quote"><a href="#Block-Quote" class="headerlink" title="Block Quote"></a>Block Quote</h2><p>Perfect for adding quotes to your post, with optional author, source and title information.</p>
+<p><strong>Alias:</strong> quote</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">{% blockquote [author[, source]] [link] [source_link_title] %}</span><br><span class="line">content</span><br><span class="line">{% endblockquote %}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="Examples"><a href="#Examples" class="headerlink" title="Examples"></a>Examples</h3><p><strong>No arguments. Plain blockquote.</strong></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">{% blockquote %}</span><br><span class="line">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque hendrerit lacus ut purus iaculis feugiat. Sed nec tempor elit, quis aliquam neque. Curabitur sed diam eget dolor fermentum semper at eu lorem.</span><br><span class="line">{% endblockquote %}</span><br></pre></td></tr></tbody></table></figure>
+<blockquote>
+<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque hendrerit lacus ut purus iaculis feugiat. Sed nec tempor elit, quis aliquam neque. Curabitur sed diam eget dolor fermentum semper at eu lorem.</p>
+</blockquote>
+<p><strong>Quote from a book</strong></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">{% blockquote David Levithan, Wide Awake %}</span><br><span class="line">Do not just seek happiness for yourself. Seek happiness for all. Through kindness. Through mercy.</span><br><span class="line">{% endblockquote %}</span><br></pre></td></tr></tbody></table></figure>
+<blockquote>
+<p>Do not just seek happiness for yourself. Seek happiness for all. Through kindness. Through mercy.</p>
+<p><strong>David Levithan</strong>Wide Awake</p>
+</blockquote>
+<p><strong>Quote from Twitter</strong></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">{% blockquote @DevDocs https://twitter.com/devdocs/status/356095192085962752 %}</span><br><span class="line">NEW: DevDocs now comes with syntax highlighting. http://devdocs.io</span><br><span class="line">{% endblockquote %}</span><br></pre></td></tr></tbody></table></figure>
+<blockquote>
+<p>NEW: DevDocs now comes with syntax highlighting. <a href="http://devdocs.io/" target="_blank" rel="noopener">http://devdocs.io</a></p>
+<p><strong>@DevDocs</strong><a href="https://twitter.com/devdocs/status/356095192085962752" target="_blank" rel="noopener">twitter.com/devdocs/status/356095192085962752</a></p>
+</blockquote>
+<p><strong>Quote from an article on the web</strong></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">{% blockquote Seth Godin http://sethgodin.typepad.com/seths_blog/2009/07/welcome-to-island-marketing.html Welcome to Island Marketing %}</span><br><span class="line">Every interaction is both precious and an opportunity to delight.</span><br><span class="line">{% endblockquote %}</span><br></pre></td></tr></tbody></table></figure>
+<blockquote>
+<p>Every interaction is both precious and an opportunity to delight.</p>
+<p><strong>Seth Godin</strong><a href="http://sethgodin.typepad.com/seths_blog/2009/07/welcome-to-island-marketing.html" target="_blank" rel="noopener">Welcome to Island Marketing</a></p>
+</blockquote>
+<h2 id="Code-Block"><a href="#Code-Block" class="headerlink" title="Code Block"></a>Code Block</h2><p>Useful feature for adding code snippets to your post.</p>
+<p><strong>Alias:</strong> code</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">{% codeblock [title] [lang:language] [url] [link text] [additional options] %}</span><br><span class="line">code snippet</span><br><span class="line">{% endcodeblock %}</span><br></pre></td></tr></tbody></table></figure>
+<p>Specify additional options in <code>option:value</code> format, e.g. <code>line_number:false first_line:5</code>.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Extra Options</th>
+<th style="text-align:left">Description</th>
+<th style="text-align:left">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>line_number</code></td>
+<td style="text-align:left">Show line number</td>
+<td style="text-align:left"><code>true</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>highlight</code></td>
+<td style="text-align:left">Enable code highlighting</td>
+<td style="text-align:left"><code>true</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>first_line</code></td>
+<td style="text-align:left">Specify the first line number</td>
+<td style="text-align:left"><code>1</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>mark</code></td>
+<td style="text-align:left">Line highlight specific line(s), each value separated by a comma. Specify number range using a dash Example: <code>mark:1,4-7,10</code> will mark line 1, 4 to 7 and 10.</td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>wrap</code></td>
+<td style="text-align:left">Wrap the code block in <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table" target="_blank" rel="noopener"><code></code></a></td>
+<td style="text-align:left"><code>true</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="Examples-1"><a href="#Examples-1" class="headerlink" title="Examples"></a>Examples</h3><p><strong>A plain code block</strong></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">{% codeblock %}</span><br><span class="line">alert('Hello World!');</span><br><span class="line">{% endcodeblock %}</span><br><span class="line">alert('Hello World!');</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>Specifying the language</strong></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">{% codeblock lang:objc %}</span><br><span class="line">[rectangle setX: 10 y: 10 width: 20 height: 20];</span><br><span class="line">{% endcodeblock %}</span><br><span class="line">[rectangle setX: 10 y: 10 width: 20 height: 20];</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>Adding a caption to the code block</strong></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">{% codeblock Array.map %}</span><br><span class="line">array.map(callback[, thisArg])</span><br><span class="line">{% endcodeblock %}</span><br><span class="line">Array.maparray.map(callback[, thisArg])</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>Adding a caption and a URL</strong></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">{% codeblock _.compact http://underscorejs.org/#compact Underscore.js %}</span><br><span class="line">_.compact([0, 1, false, 2, '', 3]);</span><br><span class="line">=&gt; [1, 2, 3]</span><br><span class="line">{% endcodeblock %}</span><br><span class="line">_.compactUnderscore.js_.compact([0, 1, false, 2, '', 3]);</span><br><span class="line">=&gt; [1, 2, 3]</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="Backtick-Code-Block"><a href="#Backtick-Code-Block" class="headerlink" title="Backtick Code Block"></a>Backtick Code Block</h2><p>This is identical to using a code block, but instead uses three backticks to delimit the block.</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[language] [title] [url] [link text] code snippet</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="Pull-Quote"><a href="#Pull-Quote" class="headerlink" title="Pull Quote"></a>Pull Quote</h2><p>To add pull quotes to your posts:</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">{% pullquote [class] %}</span><br><span class="line">content</span><br><span class="line">{% endpullquote %}</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="jsFiddle"><a href="#jsFiddle" class="headerlink" title="jsFiddle"></a>jsFiddle</h2><p>To embed a jsFiddle snippet:</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">{% jsfiddle shorttag [tabs] [skin] [width] [height] %}</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="Gist"><a href="#Gist" class="headerlink" title="Gist"></a>Gist</h2><p>To embed a Gist snippet:</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">{% gist gist_id [filename] %}</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="iframe"><a href="#iframe" class="headerlink" title="iframe"></a>iframe</h2><p>To embed an iframe:</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">{% iframe url [width] [height] %}</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="Image"><a href="#Image" class="headerlink" title="Image"></a>Image</h2><p>Inserts an image with specified size.</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">{% img [class names] /path/to/image [width] [height] '"title text" "alt text"' %}</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="Link"><a href="#Link" class="headerlink" title="Link"></a>Link</h2><p>Inserts a link with <code>target="_blank"</code> attribute.</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">{% link text url [external] [title] %}</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="Include-Code"><a href="#Include-Code" class="headerlink" title="Include Code"></a>Include Code</h2><p>Inserts code snippets in <code>source/downloads/code</code> folder. The folder location can be specified through the <code>code_dir</code> option in the config.</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">{% include_code [title] [lang:language] [from:line] [to:line] path/to/file %}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="Examples-2"><a href="#Examples-2" class="headerlink" title="Examples"></a>Examples</h3><p><strong>Embed the whole content of test.js</strong></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">{% include_code lang:javascript test.js %}</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>Embed line 3 only</strong></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">{% include_code lang:javascript from:3 to:3 test.js %}</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>Embed line 5 to 8</strong></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">{% include_code lang:javascript from:5 to:8 test.js %}</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>Embed line 5 to the end of file</strong></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">{% include_code lang:javascript from:5 test.js %}</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>Embed line 1 to 8</strong></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">{% include_code lang:javascript to:8 test.js %}</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="YouTube"><a href="#YouTube" class="headerlink" title="YouTube"></a>YouTube</h2><p>Inserts a YouTube video.</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">{% youtube video_id %}</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="Vimeo"><a href="#Vimeo" class="headerlink" title="Vimeo"></a>Vimeo</h2><p>Inserts a responsive or specified size Vimeo video.</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">{% vimeo video_id [width] [height] %}</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="Include-Posts"><a href="#Include-Posts" class="headerlink" title="Include Posts"></a>Include Posts</h2><p>Include links to other posts.</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">{% post_path filename %}</span><br><span class="line">{% post_link filename [title] [escape] %}</span><br></pre></td></tr></tbody></table></figure>
+<p>You can ignore permalink and folder information, like languages and dates, when using this tag.</p>
+<p>For instance: <code></code>.</p>
+<p>This will work as long as the filename of the post is <code>how-to-bake-a-cake.md</code>, even if the post is located at <code>source/posts/2015-02-my-family-holiday</code> and has permalink <code>2018/en/how-to-bake-a-cake</code>.</p>
+<p>You can customize the text to display, instead of displaying the post’s title. Using <code>post_path</code> inside Markdown syntax <code>[]()</code> is not supported.</p>
+<p>Post’s title and custom text are escaped by default. You can use the <code>escape</code> option to disable escaping.</p>
+<p>For instance:</p>
+<p><strong>Display title of the post.</strong></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">{% post_link hexo-3-8-released %}</span><br></pre></td></tr></tbody></table></figure>
+<p><a href="https://hexo.io/news/2018/10/19/hexo-3-8-released/" target="_blank" rel="noopener">Hexo 3.8.0 Released</a></p>
+<p><strong>Display custom text.</strong></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">{% post_link hexo-3-8-released 'Link to a post' %}</span><br></pre></td></tr></tbody></table></figure>
+<p><a href="https://hexo.io/news/2018/10/19/hexo-3-8-released/" target="_blank" rel="noopener">Link to a post</a></p>
+<p><strong>Escape title.</strong></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">{% post_link hexo-4-released 'How to use &lt;b&gt; tag in title' %}</span><br></pre></td></tr></tbody></table></figure>
+<p><a href="https://hexo.io/news/2019/10/14/hexo-4-released/" target="_blank" rel="noopener">How to use  tag in title</a></p>
+<p><strong>Do not escape title.</strong></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">{% post_link hexo-4-released '&lt;b&gt;bold&lt;/b&gt; custom title' false %}</span><br></pre></td></tr></tbody></table></figure>
+<p><a href="https://hexo.io/news/2019/10/14/hexo-4-released/" target="_blank" rel="noopener"><strong>bold</strong> custom title</a></p>
+<h2 id="Include-Assets"><a href="#Include-Assets" class="headerlink" title="Include Assets"></a>Include Assets</h2><p>Include post assets.</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">{% asset_path filename %}</span><br><span class="line">{% asset_img filename [title] %}</span><br><span class="line">{% asset_link filename [title] [escape] %}</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="Raw"><a href="#Raw" class="headerlink" title="Raw"></a>Raw</h2><p>If certain content is causing processing issues in your posts, wrap it with the <code>raw</code> tag to avoid rendering errors.</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">{% raw %}</span><br><span class="line">content</span><br><span class="line">{% endraw %}</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="Post-Excerpt"><a href="#Post-Excerpt" class="headerlink" title="Post Excerpt"></a>Post Excerpt</h2><p>Use text placed before the <code></code> tag as an excerpt for the post. <code>excerpt:</code> value in the <a href="https://hexo.io/docs/front-matter#Settings-amp-Their-Default-Values" target="_blank" rel="noopener">front-matter</a>, if specified, will take precedent.</p>
+<p><strong>Examples:</strong></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</span><br><span class="line">&lt;!-- more --&gt;</span><br><span class="line">Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="Group-Pictures"><a href="#Group-Pictures" class="headerlink" title="Group Pictures"></a>Group Pictures</h2><h3 id="Usage"><a href="#Usage" class="headerlink" title="Usage"></a>Usage</h3><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">group-pictures.js</span><br><span class="line">{% grouppicture [group]-[layout] %}{% endgrouppicture %}</span><br><span class="line">{% gp [group]-[layout] %}{% endgp %}</span><br><span class="line"></span><br><span class="line">[group]  : Total number of pictures to add in the group.</span><br><span class="line">[layout] : Default picture under the group to show.</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="Examples-3"><a href="#Examples-3" class="headerlink" title="Examples"></a>Examples</h3><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">{% grouppicture 6-3 %}</span><br><span class="line">  ![](/images/docs/github.png)</span><br><span class="line">  ![](/images/docs/github.png)</span><br><span class="line">  ![](/images/docs/github.png)</span><br><span class="line">  ![](/images/docs/github.png)</span><br><span class="line">  ![](/images/docs/github.png)</span><br><span class="line">  ![](/images/docs/github.png)</span><br><span class="line">{% endgrouppicture %}</span><br></pre></td></tr></tbody></table></figure>
+<p><img src="https://raw.githubusercontent.com/stanxia/blog-pics/master/20200222180450.png" alt=""></p>
+<h2 id="PDF"><a href="#PDF" class="headerlink" title="PDF"></a>PDF</h2><h3 id="Settings"><a href="#Settings" class="headerlink" title="Settings"></a>Settings</h3><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">next/_config.yml</span><br><span class="line">pdf:</span><br><span class="line">  enable: true</span><br><span class="line">  # Default height</span><br><span class="line">  height: 500px</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="Usage-1"><a href="#Usage-1" class="headerlink" title="Usage"></a>Usage</h3><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">pdf.js</span><br><span class="line">{% pdf url [height] %}</span><br><span class="line"></span><br><span class="line">[url]    : Relative path to PDF file.</span><br><span class="line">[height] : Optional. Height of the PDF display element, e.g. 800px.</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="Examples-4"><a href="#Examples-4" class="headerlink" title="Examples"></a>Examples</h3><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">{% pdf https://example.com/sample.pdf %}</span><br><span class="line">{% pdf /path/to/your/file.pdf 600px %}</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="Label"><a href="#Label" class="headerlink" title="Label"></a>Label</h2><h3 id="Usage-2"><a href="#Usage-2" class="headerlink" title="Usage"></a>Usage</h3><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">label.js</span><br><span class="line">{% label [class]@Text %}</span><br><span class="line"></span><br><span class="line">[class] : default | primary | success | info | warning | danger.</span><br><span class="line">          '@Text' can be specified with or without space</span><br><span class="line">          E.g. 'success @text' similar to 'success@text'.</span><br><span class="line">          If not specified, default class will be selected.</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="Examples-5"><a href="#Examples-5" class="headerlink" title="Examples"></a>Examples</h3><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Lorem {% label @ipsum %} {% label primary@dolor sit %} amet, consectetur {% label success@adipiscing elit, %} sed {% label info@do eiusmod %} tempor incididunt ut labore et dolore magna aliqua.</span><br><span class="line"></span><br><span class="line">Ut enim *{% label warning @ad %}* minim veniam, quis **{% label danger@nostrud %}** exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</span><br><span class="line"></span><br><span class="line">Duis aute irure dolor in reprehenderit in voluptate ~~{% label default @velit %}~~ &lt;mark&gt;esse&lt;/mark&gt; cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</span><br></pre></td></tr></tbody></table></figure>
+<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+<p>Ut enim <em>ad</em> minim veniam, quis <strong>nostrud</strong> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+<p>Duis aute irure dolor in reprehenderit in voluptate <del>velit</del> esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/hexo/" rel="tag"># hexo</a>
+              <a href="/tags/next/" rel="tag"># next</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/02/06/计算机基础知识/" rel="prev" title="计算机基础知识">
+      <i class="fa fa-chevron-left"></i> 计算机基础知识
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/02/09/剑指offer/" rel="next" title="剑指offer">
+      剑指offer <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Note"><span class="nav-number">1.</span> <span class="nav-text">Note</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Tabs"><span class="nav-number">2.</span> <span class="nav-text">Tabs</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Block-Quote"><span class="nav-number">3.</span> <span class="nav-text">Block Quote</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Examples"><span class="nav-number">3.1.</span> <span class="nav-text">Examples</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Code-Block"><span class="nav-number">4.</span> <span class="nav-text">Code Block</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Examples-1"><span class="nav-number">4.1.</span> <span class="nav-text">Examples</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Backtick-Code-Block"><span class="nav-number">5.</span> <span class="nav-text">Backtick Code Block</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Pull-Quote"><span class="nav-number">6.</span> <span class="nav-text">Pull Quote</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#jsFiddle"><span class="nav-number">7.</span> <span class="nav-text">jsFiddle</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gist"><span class="nav-number">8.</span> <span class="nav-text">Gist</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#iframe"><span class="nav-number">9.</span> <span class="nav-text">iframe</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Image"><span class="nav-number">10.</span> <span class="nav-text">Image</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Link"><span class="nav-number">11.</span> <span class="nav-text">Link</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Include-Code"><span class="nav-number">12.</span> <span class="nav-text">Include Code</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Examples-2"><span class="nav-number">12.1.</span> <span class="nav-text">Examples</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#YouTube"><span class="nav-number">13.</span> <span class="nav-text">YouTube</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Vimeo"><span class="nav-number">14.</span> <span class="nav-text">Vimeo</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Include-Posts"><span class="nav-number">15.</span> <span class="nav-text">Include Posts</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Include-Assets"><span class="nav-number">16.</span> <span class="nav-text">Include Assets</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Raw"><span class="nav-number">17.</span> <span class="nav-text">Raw</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Post-Excerpt"><span class="nav-number">18.</span> <span class="nav-text">Post Excerpt</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Group-Pictures"><span class="nav-number">19.</span> <span class="nav-text">Group Pictures</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Usage"><span class="nav-number">19.1.</span> <span class="nav-text">Usage</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Examples-3"><span class="nav-number">19.2.</span> <span class="nav-text">Examples</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PDF"><span class="nav-number">20.</span> <span class="nav-text">PDF</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Settings"><span class="nav-number">20.1.</span> <span class="nav-text">Settings</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Usage-1"><span class="nav-number">20.2.</span> <span class="nav-text">Usage</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Examples-4"><span class="nav-number">20.3.</span> <span class="nav-text">Examples</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Label"><span class="nav-number">21.</span> <span class="nav-text">Label</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Usage-2"><span class="nav-number">21.1.</span> <span class="nav-text">Usage</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Examples-5"><span class="nav-number">21.2.</span> <span class="nav-text">Examples</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Freehuber" src="/images/avatar.gif">
+  <p class="site-author-name" itemprop="name">Freehuber</p>
+  <div class="site-description" itemprop="description">左手写诗，右手撸码</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">57</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">40</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/freehubs" title="GitHub → https://github.com/freehubs" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  © 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Freehuber</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  
+  
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+
+
+
+
+
+<script src="/bundle.js"></script><script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: '47209006cdab2e987d9e',
+      clientSecret: 'c7df73e28dcfcef507958f6cf2457857ac9776be',
+      repo: 'freehubs.github.io',
+      owner: 'freehubs',
+      admin: ['freehubs'],
+      id: '22262d5a64f72c0045a33ec3370bedfd',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script></body></html>

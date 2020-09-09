@@ -1,0 +1,536 @@
+<!DOCTYPE html><html lang="zh-Hans"><head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/1281.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/323.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/161.png">
+  <link rel="mask-icon" href="/images/atom.svg" color="#222">
+
+
+
+
+
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://freehubs.github.io').hostname,
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.7.1',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="parquet是一种列式存储。可以提供面向列的存储和查询。            Parquet的优势在sparkSQL程序中使用parquet格式存储文件，在存储空间和查询性能方面都有很高的效率。 存储方面因为是面向列的存储，同一列的类型相同，因而在存储的过程中可以使用更高效的压缩方案，可以节省大量的存储空间。 查询方面在执行查询任务时，只会扫描需要的列，而不是全部，高">
+<meta name="keywords" content="spark,parquet">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spark关于parquet的优化">
+<meta property="og:url" content="https://freehubs.github.io/2017/11/01/spark关于parquet的优化/index.html">
+<meta property="og:site_name" content="Freehubs">
+<meta property="og:description" content="parquet是一种列式存储。可以提供面向列的存储和查询。            Parquet的优势在sparkSQL程序中使用parquet格式存储文件，在存储空间和查询性能方面都有很高的效率。 存储方面因为是面向列的存储，同一列的类型相同，因而在存储的过程中可以使用更高效的压缩方案，可以节省大量的存储空间。 查询方面在执行查询任务时，只会扫描需要的列，而不是全部，高">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15118606648730.jpg">
+<meta property="og:updated_time" content="2020-09-09T04:36:35.749Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="spark关于parquet的优化">
+<meta name="twitter:description" content="parquet是一种列式存储。可以提供面向列的存储和查询。            Parquet的优势在sparkSQL程序中使用parquet格式存储文件，在存储空间和查询性能方面都有很高的效率。 存储方面因为是面向列的存储，同一列的类型相同，因而在存储的过程中可以使用更高效的压缩方案，可以节省大量的存储空间。 查询方面在执行查询任务时，只会扫描需要的列，而不是全部，高">
+<meta name="twitter:image" content="http://oliji9s3j.bkt.clouddn.com/15118606648730.jpg">
+
+<link rel="canonical" href="https://freehubs.github.io/2017/11/01/spark关于parquet的优化/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>spark关于parquet的优化 | Freehubs</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Freehubs" type="application/atom+xml">
+<script>function loadCss(l){var d=document,h=d.head,s=d.createElement('link');s.rel='stylesheet';s.href=l;!function e(f){if (d.body)return f();setTimeout(function(){e(f)})}(function(){h.appendChild(s);});}loadCss('/style.css');loadCss('//stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css');loadCss('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css');</script><noscript><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="//stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"><link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css"></noscript></head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Freehubs</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-数工">
+
+    <a href="/bigdata" rel="section">数工</a>
+
+  </li>
+        <li class="menu-item menu-item-面试">
+
+    <a href="/tags/offer/" rel="section">面试</a>
+
+  </li>
+        <li class="menu-item menu-item-算法">
+
+    <a href="/tags/algo/" rel="section">算法</a>
+
+  </li>
+        <li class="menu-item menu-item-gem">
+
+    <a href="/gem/" rel="section">GEM</a>
+
+  </li>
+        <li class="menu-item menu-item-生活">
+
+    <a href="/tags/life/" rel="section">生活</a>
+
+  </li>
+        <li class="menu-item menu-item-归档">
+
+    <a href="/archives/" rel="section">归档</a>
+
+  </li>
+        <li class="menu-item menu-item-标签">
+
+    <a href="/tags/" rel="section">标签</a>
+
+  </li>
+        <li class="menu-item menu-item-博客">
+
+    <a href="/categories/blog/" rel="section">博客</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger">Search
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="Searching..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope="" itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://freehubs.github.io/2017/11/01/spark关于parquet的优化/">
+
+    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Freehuber">
+      <meta itemprop="description" content="左手写诗，右手撸码">
+    </span>
+
+    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Freehubs">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          spark关于parquet的优化<a href="https://github.com/freehubs/freehubs.github.io.source/tree/master/source/_posts/spark关于parquet的优化.md" class="post-edit-link" title="Edit this post" rel="noopener" target="_blank"><i class="fa fa-pencil"></i></a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-11-01 14:53:13" itemprop="dateCreated datePublished" datetime="2017-11-01T14:53:13+00:00">2017-11-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-09-09 04:36:35" itemprop="dateModified" datetime="2020-09-09T04:36:35+00:00">2020-09-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/spark/" itemprop="url" rel="index">
+                    <span itemprop="name">spark</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <div class="note info">
+            <p>parquet是一种列式存储。可以提供面向列的存储和查询。</p>
+          </div>
+<h2 id="Parquet的优势"><a href="#Parquet的优势" class="headerlink" title="Parquet的优势"></a>Parquet的优势</h2><p>在sparkSQL程序中使用parquet格式存储文件，在存储空间和查询性能方面都有很高的效率。</p>
+<h3 id="存储方面"><a href="#存储方面" class="headerlink" title="存储方面"></a>存储方面</h3><p>因为是面向列的存储，同一列的类型相同，因而在存储的过程中可以使用更高效的压缩方案，可以节省大量的存储空间。</p>
+<h3 id="查询方面"><a href="#查询方面" class="headerlink" title="查询方面"></a>查询方面</h3><p>在执行查询任务时，只会扫描需要的列，而不是全部，高度灵活性使查询变得非常高效。<br><a id="more"></a></p>
+<h3 id="实例测试"><a href="#实例测试" class="headerlink" title="实例测试"></a>实例测试</h3><table>
+<thead>
+<tr>
+<th>测试数据大小</th>
+<th>存储类型</th>
+<th>存储所占空间</th>
+<th>查询性能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1T</td>
+<td>TEXTFILE</td>
+<td>897.9G</td>
+<td>698s</td>
+</tr>
+<tr>
+<td>1T</td>
+<td>Parquet</td>
+<td>231.4G</td>
+<td>21s</td>
+</tr>
+</tbody>
+</table>
+<h2 id="Parquet的使用"><a href="#Parquet的使用" class="headerlink" title="Parquet的使用"></a>Parquet的使用</h2><p>使用parquet的简单demo：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Encoders for most common types are automatically provided by importing spark.implicits._</span></span><br><span class="line"><span class="keyword">import</span> spark.implicits._</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> peopleDF = spark.read.json(<span class="string">"examples/src/main/resources/people.json"</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// DataFrames can be saved as Parquet files, maintaining the schema information</span></span><br><span class="line">peopleDF.write.parquet(<span class="string">"people.parquet"</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// Read in the parquet file created above</span></span><br><span class="line"><span class="comment">// Parquet files are self-describing so the schema is preserved</span></span><br><span class="line"><span class="comment">// The result of loading a Parquet file is also a DataFrame</span></span><br><span class="line"><span class="keyword">val</span> parquetFileDF = spark.read.parquet(<span class="string">"people.parquet"</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// Parquet files can also be used to create a temporary view and then used in SQL statements</span></span><br><span class="line">parquetFileDF.createOrReplaceTempView(<span class="string">"parquetFile"</span>)</span><br><span class="line"><span class="keyword">val</span> namesDF = spark.sql(<span class="string">"SELECT name FROM parquetFile WHERE age BETWEEN 13 AND 19"</span>)</span><br><span class="line">namesDF.map(attributes =&gt; <span class="string">"Name: "</span> + attributes(<span class="number">0</span>)).show()</span><br><span class="line"><span class="comment">// +------------+</span></span><br><span class="line"><span class="comment">// |       value|</span></span><br><span class="line"><span class="comment">// +------------+</span></span><br><span class="line"><span class="comment">// |Name: Justin|</span></span><br><span class="line"><span class="comment">// +------------+</span></span><br></pre></td></tr></tbody></table></figure>
+<h2 id="Parquet-的问题"><a href="#Parquet-的问题" class="headerlink" title="Parquet 的问题"></a>Parquet 的问题</h2><p> spark 写入数据到 hive 中，使用 Parquet 存储格式，查询该表时报错如下：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Error</span>: java.io.<span class="type">IOException</span>: org.apache.parquet.io.<span class="type">ParquetDecodingException</span>: <span class="type">Can</span> not read value at <span class="number">0</span> in block <span class="number">-1</span> in file</span><br></pre></td></tr></tbody></table></figure>
+<p>当时设置的字段属性为：<br><img src="http://oliji9s3j.bkt.clouddn.com/15118606648730.jpg" alt=""></p>
+<p>经过比对，发现是 decimal 类型出了问题，查询 decimal 的字段时候就会报错，而查询其他的并不会报错。（这应该是 spark 引起的，因为在 hive 客户端执行 decimal 类型的操作时并不会出错。）</p>
+<p>查阅网上，也有些朋友遇到了类似的事情，应该是官方的 bug ，暂时的解决办法是:</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1.</span> 将 <span class="type">Parquet</span> 的存储格式转换为 <span class="type">ORC</span> </span><br><span class="line"><span class="number">2.</span> 或将 decimal 换为 double 类型存储字段</span><br></pre></td></tr></tbody></table></figure>
+<!--对不起，到时间了，请停止装逼-->
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/spark/" rel="tag"># spark</a>
+              <a href="/tags/parquet/" rel="tag"># parquet</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/11/01/三步走战略/" rel="prev" title="三步走战略">
+      <i class="fa fa-chevron-left"></i> 三步走战略
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/11/06/spark源码注释翻译/" rel="next" title="spark源码注释翻译">
+      spark源码注释翻译 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Parquet的优势"><span class="nav-number">1.</span> <span class="nav-text">Parquet的优势</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#存储方面"><span class="nav-number">1.1.</span> <span class="nav-text">存储方面</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查询方面"><span class="nav-number">1.2.</span> <span class="nav-text">查询方面</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实例测试"><span class="nav-number">1.3.</span> <span class="nav-text">实例测试</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Parquet的使用"><span class="nav-number">2.</span> <span class="nav-text">Parquet的使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Parquet-的问题"><span class="nav-number">3.</span> <span class="nav-text">Parquet 的问题</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Freehuber" src="/images/avatar.gif">
+  <p class="site-author-name" itemprop="name">Freehuber</p>
+  <div class="site-description" itemprop="description">左手写诗，右手撸码</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">57</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">40</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/freehubs" title="GitHub → https://github.com/freehubs" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  © 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Freehuber</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  
+  
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+
+
+
+
+
+<script src="/bundle.js"></script><script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: '47209006cdab2e987d9e',
+      clientSecret: 'c7df73e28dcfcef507958f6cf2457857ac9776be',
+      repo: 'freehubs.github.io',
+      owner: 'freehubs',
+      admin: ['freehubs'],
+      id: '07aa8b1ee1891fd81efc57128f8eb205',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script></body></html>

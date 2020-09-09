@@ -1,0 +1,554 @@
+<!DOCTYPE html><html lang="zh-Hans"><head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/1281.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/323.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/161.png">
+  <link rel="mask-icon" href="/images/atom.svg" color="#222">
+
+
+
+
+
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://freehubs.github.io').hostname,
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.7.1',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="冒泡排序-n2            原理通过相邻元素比较交换的方式，将最大的元素依次移动到列表中未排好序部分的尾部，重复操作，直到列表中未排好序的部分为空，从而使整个列表有序">
+<meta name="keywords" content="scala,algo,offer">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Scala 算法实现">
+<meta property="og:url" content="https://freehubs.github.io/2020/02/22/Scala-算法实现/index.html">
+<meta property="og:site_name" content="Freehubs">
+<meta property="og:description" content="冒泡排序-n2            原理通过相邻元素比较交换的方式，将最大的元素依次移动到列表中未排好序部分的尾部，重复操作，直到列表中未排好序的部分为空，从而使整个列表有序">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://raw.githubusercontent.com/stanxia/blog-pics/master/20200223155912.png">
+<meta property="og:updated_time" content="2020-02-23T23:25:51.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Scala 算法实现">
+<meta name="twitter:description" content="冒泡排序-n2            原理通过相邻元素比较交换的方式，将最大的元素依次移动到列表中未排好序部分的尾部，重复操作，直到列表中未排好序的部分为空，从而使整个列表有序">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/stanxia/blog-pics/master/20200223155912.png">
+
+<link rel="canonical" href="https://freehubs.github.io/2020/02/22/Scala-算法实现/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Scala 算法实现 | Freehubs</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Freehubs" type="application/atom+xml">
+<script>function loadCss(l){var d=document,h=d.head,s=d.createElement('link');s.rel='stylesheet';s.href=l;!function e(f){if (d.body)return f();setTimeout(function(){e(f)})}(function(){h.appendChild(s);});}loadCss('/style.css');loadCss('//stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css');loadCss('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css');</script><noscript><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="//stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"><link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css"></noscript></head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Freehubs</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-数工">
+
+    <a href="/bigdata" rel="section">数工</a>
+
+  </li>
+        <li class="menu-item menu-item-面试">
+
+    <a href="/tags/offer/" rel="section">面试</a>
+
+  </li>
+        <li class="menu-item menu-item-算法">
+
+    <a href="/tags/algo/" rel="section">算法</a>
+
+  </li>
+        <li class="menu-item menu-item-gem">
+
+    <a href="/gem/" rel="section">GEM</a>
+
+  </li>
+        <li class="menu-item menu-item-生活">
+
+    <a href="/tags/life/" rel="section">生活</a>
+
+  </li>
+        <li class="menu-item menu-item-归档">
+
+    <a href="/archives/" rel="section">归档</a>
+
+  </li>
+        <li class="menu-item menu-item-标签">
+
+    <a href="/tags/" rel="section">标签</a>
+
+  </li>
+        <li class="menu-item menu-item-博客">
+
+    <a href="/categories/blog/" rel="section">博客</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger">Search
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="Searching..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope="" itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://freehubs.github.io/2020/02/22/Scala-算法实现/">
+
+    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Freehuber">
+      <meta itemprop="description" content="左手写诗，右手撸码">
+    </span>
+
+    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Freehubs">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Scala 算法实现<a href="https://github.com/freehubs/freehubs.github.io.source/tree/master/source/_posts/Scala-算法实现.md" class="post-edit-link" title="Edit this post" rel="noopener" target="_blank"><i class="fa fa-pencil"></i></a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-02-22 23:25:51" itemprop="dateCreated datePublished" datetime="2020-02-22T23:25:51+00:00">2020-02-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-02-23 23:25:51" itemprop="dateModified" datetime="2020-02-23T23:25:51+00:00">2020-02-23</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/scala/" itemprop="url" rel="index">
+                    <span itemprop="name">scala</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <div class="note success">
+            <h2 id="冒泡排序-n2"><a href="#冒泡排序-n2" class="headerlink" title="冒泡排序-n2"></a>冒泡排序-n2</h2>
+          </div>
+<h3 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h3><p>通过相邻元素比较交换的方式，将最大的元素依次移动到列表中未排好序部分的尾部，重复操作，直到列表中未排好序的部分为空，从而使整个列表有序</p>
+<a id="more"></a>
+<h3 id="scala实现思路"><a href="#scala实现思路" class="headerlink" title="scala实现思路"></a>scala实现思路</h3><p>通过相邻元素比较交换的方式，将最大的元素依次移动到列表中未排好序部分的尾部，重复操作，直到列表中未排好序的部分为空，从而使整个列表有序</p>
+<ol>
+<li>新建一冒泡函数bubble(unSorteds: List[A]): A，实现一趟冒泡功能，即从输入列表中冒泡出一个最大元素A</li>
+<li>给bubble函数添加两个参数remains: List[A], accOrdereds: List[A],添加后函数如下：bubble(unSorteds: List[A],remains: List[A], accOrdereds: List[A]): A<br> 其中remains用于记录每次冒泡后去掉冒出去的元素后剩余元素列表，<br> accOrdereds用于累积每趟冒泡冒出来的元素，然后将返回值A改为List[A],即返回累积排好序的列表。<br> 函数bubble使用“模式匹配”匹配为排序的列表，分两种情况</li>
+<li>列表中至少有两种元素的情况</li>
+<li>列表中只剩余一个元素<br> 这种情况下，当剩余元素列表remains为空时，说明整个排序完成。否则继续递归bubble</li>
+</ol>
+<h3 id="具体实现"><a href="#具体实现" class="headerlink" title="具体实现"></a>具体实现</h3><h4 id="循环"><a href="#循环" class="headerlink" title="循环"></a>循环</h4><figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** 冒泡排序 时间复杂度 n2 */</span></span><br><span class="line">  <span class="keyword">import</span> scala.collection.mutable.<span class="type">ListBuffer</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">bubbleSortV1</span></span>(list: <span class="type">ListBuffer</span>[<span class="type">Int</span>]): <span class="type">ListBuffer</span>[<span class="type">Int</span>] = list <span class="keyword">match</span> {</span><br><span class="line">    <span class="keyword">case</span> <span class="literal">null</span> =&gt; <span class="literal">null</span></span><br><span class="line">    <span class="keyword">case</span> _ =&gt;</span><br><span class="line">      <span class="keyword">var</span> tmp = <span class="number">0</span></span><br><span class="line">      <span class="keyword">val</span> length = list.length</span><br><span class="line">      <span class="keyword">for</span> (i &lt;- <span class="number">0</span> until length) {</span><br><span class="line">        <span class="keyword">for</span> (j &lt;- i until length) {</span><br><span class="line">          <span class="keyword">if</span> (list(i) &gt; list(j)) {</span><br><span class="line">            tmp = list(i)</span><br><span class="line">            list(i) = list(j)</span><br><span class="line">            list(j) = tmp</span><br><span class="line">          }</span><br><span class="line">        }</span><br><span class="line">      }</span><br><span class="line">      list</span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<h4 id="尾递归"><a href="#尾递归" class="headerlink" title="尾递归"></a>尾递归</h4><figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">  * @param unSorteds 每一趟冒泡时待排序列表</span></span><br><span class="line"><span class="comment">  * @param remains  已遍历且未冒出的元素列表</span></span><br><span class="line"><span class="comment">  * @param accOrdereds 已冒出的元素组成的有序列表(是累积的)</span></span><br><span class="line"><span class="comment">  * @return 每一趟冒泡后排好序的列表</span></span><br><span class="line"><span class="comment">  */</span></span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">bubbleSortV3</span></span>(list: <span class="type">List</span>[<span class="type">Int</span>]): <span class="type">List</span>[<span class="type">Int</span>] = {</span><br><span class="line"></span><br><span class="line">  <span class="keyword">import</span> scala.annotation.tailrec</span><br><span class="line">  <span class="meta">@tailrec</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">bubble</span></span>(unBubbles: <span class="type">List</span>[<span class="type">Int</span>], remains: <span class="type">List</span>[<span class="type">Int</span>], bubbled: <span class="type">List</span>[<span class="type">Int</span>]): <span class="type">List</span>[<span class="type">Int</span>] = unBubbles <span class="keyword">match</span> {</span><br><span class="line">    <span class="keyword">case</span> head :: <span class="type">Nil</span> =&gt; <span class="keyword">if</span> (remains.isEmpty) head :: bubbled <span class="keyword">else</span> bubble(remains, <span class="type">Nil</span>, head :: bubbled)</span><br><span class="line">    <span class="keyword">case</span> head1 :: head2 :: tail =&gt;</span><br><span class="line">      <span class="keyword">if</span> (head1 &gt; head2) {</span><br><span class="line">        bubble(head1 :: tail, head2 :: remains, bubbled)</span><br><span class="line">      } <span class="keyword">else</span> {</span><br><span class="line">        bubble(head2 :: tail, head1 :: remains, bubbled)</span><br><span class="line">      }</span><br><span class="line">  }</span><br><span class="line">  list <span class="keyword">match</span> {</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Nil</span> =&gt; <span class="type">Nil</span></span><br><span class="line">    <span class="keyword">case</span> _ =&gt; bubble(list, <span class="type">Nil</span>, <span class="type">Nil</span>)</span><br><span class="line">  }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<div class="note info">
+            <h2 id="快速排序-nlogn"><a href="#快速排序-nlogn" class="headerlink" title="快速排序-nlogn"></a>快速排序-nlogn</h2>
+          </div>
+<h3 id="原理-1"><a href="#原理-1" class="headerlink" title="原理"></a>原理</h3><p>使用分治思想，将数列用选好的基准点划分为两个子序列（也就是将比基准点小的元素放左边，比基准点大的元素放右边），递归对子序列使用此方法进行此操作，递归到最底部时，数列的大小是零或一，也就是已排好序。</p>
+<h3 id="实现思路"><a href="#实现思路" class="headerlink" title="实现思路"></a>实现思路</h3><p>利用scala的模式匹配对序列进行匹配，分两种情况：</p>
+<ul>
+<li><p>序列为空：为空时返回一个空的List()</p>
+</li>
+<li><p>序列由head和tail组成，head不为空：</p>
+<p>这时候以head为基准点将序列划分为left和right两个子序列，然后然后对left和right进行同样操作并将结果quickSort(left)和quickSort(right)与基准元素head连接起来，如此递归操作，直到所有子序列都为空，便已排好序。</p>
+</li>
+</ul>
+<h3 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h3><figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">quickSort</span></span>(list: <span class="type">List</span>[<span class="type">Int</span>]): <span class="type">List</span>[<span class="type">Int</span>] = list <span class="keyword">match</span> {</span><br><span class="line">  <span class="keyword">case</span> <span class="type">Nil</span> =&gt; <span class="type">List</span>()</span><br><span class="line">  <span class="keyword">case</span> head :: tail =&gt;</span><br><span class="line">    <span class="keyword">val</span> (left, right) = tail.partition(_ &lt; head)</span><br><span class="line">    quickSort(left) ::: <span class="type">List</span>(head) ::: quickSort(right)</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<div class="note warning">
+            <h2 id="插入排序-n2"><a href="#插入排序-n2" class="headerlink" title="插入排序-n2"></a>插入排序-n2</h2>
+          </div>
+<h3 id="原理-2"><a href="#原理-2" class="headerlink" title="原理"></a>原理</h3><p>通过构建有序序列，对于未排序数据，在已排序序列中从后向前扫描，找到相应位置并插入，直到将所有未排序数据都插入到已排序序列中，排序便完成</p>
+<h3 id="scala实现思路-1"><a href="#scala实现思路-1" class="headerlink" title="scala实现思路"></a>scala实现思路</h3><ol>
+<li>新建一个insert函数实现将一个元素插入到已排序序列的功能，函数签名如下 def insert(a: A, accOrdereds: List[A]): List[A]，其中accOrdereds为已经排序序列，且是累积的，即每次insert时传入的都是当前最新的已排序序列。此函数实现思路也是使用模式匹配来实现。<br> 这种情况下</li>
+<li>新建一sort函数，函数签名如下：<br> def sort(unSorteds: List[A], accOrdereds: List[A]): List[A]<br> 其中unSorteds是以模式匹配的方式匹配头和尾，将头元素使用insert函数插入到累积的已排序的序列。然后再使用sort进行下一轮插入。如此递归执行，直到为排序序列unSorteds为空，返回累积已经排好序的序列</li>
+</ol>
+<blockquote>
+<p>注意<br> scala中List的头(head)是List中第一个元素，List的尾(tail)是去掉头元素(head)后的List</p>
+</blockquote>
+<h3 id="scala代码实现"><a href="#scala代码实现" class="headerlink" title="scala代码实现"></a>scala代码实现</h3><h4 id="尾递归实现"><a href="#尾递归实现" class="headerlink" title="尾递归实现"></a>尾递归实现</h4><figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">insertSortV2</span></span>(list: <span class="type">List</span>[<span class="type">Int</span>]): <span class="type">List</span>[<span class="type">Int</span>] = {</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">sort</span></span>(unSortedList: <span class="type">List</span>[<span class="type">Int</span>], sortedList: <span class="type">List</span>[<span class="type">Int</span>]): <span class="type">List</span>[<span class="type">Int</span>] = unSortedList <span class="keyword">match</span> {</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Nil</span> =&gt; sortedList</span><br><span class="line">    <span class="keyword">case</span> head :: tail =&gt; sort(tail, insert(head, sortedList))</span><br><span class="line">  }</span><br><span class="line"></span><br><span class="line">  sort(list, <span class="type">Nil</span>)</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">insert</span></span>(data: <span class="type">Int</span>, sortedList: <span class="type">List</span>[<span class="type">Int</span>]): <span class="type">List</span>[<span class="type">Int</span>] = sortedList <span class="keyword">match</span> {</span><br><span class="line">  <span class="keyword">case</span> head :: tail <span class="keyword">if</span> data &gt; head =&gt; head :: insert(data, tail)</span><br><span class="line">  <span class="keyword">case</span> _ =&gt; data :: sortedList</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h4 id="循环实现"><a href="#循环实现" class="headerlink" title="循环实现"></a>循环实现</h4><figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">insertSort</span></span>(list: <span class="type">List</span>[<span class="type">Int</span>]): <span class="type">List</span>[<span class="type">Int</span>] = list <span class="keyword">match</span> {</span><br><span class="line">  <span class="keyword">case</span> <span class="type">Nil</span> =&gt; <span class="type">List</span>()</span><br><span class="line">  <span class="keyword">case</span> _ =&gt;</span><br><span class="line">    <span class="keyword">var</span> orderedList = <span class="type">List</span>[<span class="type">Int</span>]()</span><br><span class="line">    <span class="keyword">for</span> (data &lt;- list) {</span><br><span class="line">      orderedList = insert(data, orderedList)</span><br><span class="line">    }</span><br><span class="line">    orderedList</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">insert</span></span>(data: <span class="type">Int</span>, sortedList: <span class="type">List</span>[<span class="type">Int</span>]): <span class="type">List</span>[<span class="type">Int</span>] = sortedList <span class="keyword">match</span> {</span><br><span class="line">  <span class="keyword">case</span> head :: tail <span class="keyword">if</span> data &gt; head =&gt; head :: insert(data, tail)</span><br><span class="line">  <span class="keyword">case</span> _ =&gt; data :: sortedList</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<div class="note danger">
+            <h2 id="归并排序-nlogn"><a href="#归并排序-nlogn" class="headerlink" title="归并排序-nlogn"></a>归并排序-nlogn</h2>
+          </div>
+<p><img src="https://raw.githubusercontent.com/stanxia/blog-pics/master/20200223155912.png" alt=""></p>
+<h3 id="原理-3"><a href="#原理-3" class="headerlink" title="原理"></a>原理</h3><p>使用分治思想，将序列划分为若干个只有一个元素的子序列，重复进行merge排序操作，将子序列两两合并，直到最后只剩下一个子序列，这个子序列就是已排好的序列</p>
+<h3 id="scala实现思路-2"><a href="#scala实现思路-2" class="headerlink" title="scala实现思路"></a>scala实现思路</h3><ol>
+<li>创建一个merge函数用于合并两个排好序的子序列<br> def merge(as: List[A], bs: List[A]): List[A]<br> 实现方式通过内建一个loop函数，实现对两个序列的遍历和排序，loop函数签名如下：<br> def loop(cs: List[A], ds: List[A], accSorteds: List[A]): List[A]<br> cs和ds是两个已排序序列，accSorteds是累积排序序列，cs和ds合并过程中产生的新的有序列序列</li>
+<li>新建一个划分序列并将划分序列合并排序的函数：<br> splitIn2AndSort(as: List[A]): List[A]</li>
+</ol>
+<h3 id="scala代码实现-1"><a href="#scala代码实现-1" class="headerlink" title="scala代码实现"></a>scala代码实现</h3><figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">mergeSort</span></span>(list: <span class="type">List</span>[<span class="type">Int</span>]): <span class="type">List</span>[<span class="type">Int</span>] = {</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">merge</span></span>(list1: <span class="type">List</span>[<span class="type">Int</span>], list2: <span class="type">List</span>[<span class="type">Int</span>]): <span class="type">List</span>[<span class="type">Int</span>] = {</span><br><span class="line">    <span class="meta">@scala</span>.annotation.tailrec</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">loop</span></span>(aList: <span class="type">List</span>[<span class="type">Int</span>], bList: <span class="type">List</span>[<span class="type">Int</span>], mergedList: <span class="type">List</span>[<span class="type">Int</span>]): <span class="type">List</span>[<span class="type">Int</span>] = (aList, bList) <span class="keyword">match</span> {</span><br><span class="line">      <span class="keyword">case</span> (<span class="type">Nil</span>, <span class="type">Nil</span>) =&gt; mergedList</span><br><span class="line">      <span class="keyword">case</span> (<span class="type">Nil</span>, bHead :: bTail) =&gt; loop(<span class="type">Nil</span>, bTail, bHead :: mergedList)</span><br><span class="line">      <span class="keyword">case</span> (aHead :: aTail, <span class="type">Nil</span>) =&gt; loop(aTail, <span class="type">Nil</span>, aHead :: mergedList)</span><br><span class="line">      <span class="keyword">case</span> (aHead :: aTail, bHead :: bTail) =&gt;</span><br><span class="line">        <span class="keyword">if</span> (aHead &gt; bHead) loop(aList, bTail, bHead :: mergedList)</span><br><span class="line">        <span class="keyword">else</span> loop(aTail, bList, aHead :: mergedList)</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    loop(list1, list2, <span class="type">Nil</span>).reverse</span><br><span class="line">  }</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">sort</span></span>(lists: (<span class="type">List</span>[<span class="type">Int</span>], <span class="type">List</span>[<span class="type">Int</span>])): <span class="type">List</span>[<span class="type">Int</span>] = lists <span class="keyword">match</span> {</span><br><span class="line">    <span class="keyword">case</span> (<span class="type">Nil</span>, <span class="type">Nil</span>) =&gt; <span class="type">Nil</span></span><br><span class="line">    <span class="keyword">case</span> (head :: <span class="type">Nil</span>, <span class="type">Nil</span>) =&gt; head :: <span class="type">Nil</span></span><br><span class="line">    <span class="keyword">case</span> (<span class="type">Nil</span>, head :: <span class="type">Nil</span>) =&gt; head :: <span class="type">Nil</span></span><br><span class="line">    <span class="keyword">case</span> (aList, bList) =&gt;</span><br><span class="line">      merge(sort(splitListIn2(aList)), sort(splitListIn2(bList)))</span><br><span class="line">  }</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">splitListIn2</span></span>(list: <span class="type">List</span>[<span class="type">Int</span>]): (<span class="type">List</span>[<span class="type">Int</span>], <span class="type">List</span>[<span class="type">Int</span>]) = list <span class="keyword">match</span> {</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Nil</span> =&gt; (<span class="type">Nil</span>, <span class="type">Nil</span>)</span><br><span class="line">    <span class="keyword">case</span> _ =&gt;</span><br><span class="line">      <span class="keyword">val</span> mid = list.length / <span class="number">2</span></span><br><span class="line">      list.splitAt(mid) <span class="comment">//  (list.slice(0, mid), list.slice(mid, list.length))</span></span><br><span class="line"></span><br><span class="line">  }</span><br><span class="line"></span><br><span class="line">  sort(splitListIn2(list))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<div class="note success">
+            <h2 id="选择排序-n2"><a href="#选择排序-n2" class="headerlink" title="选择排序-n2"></a>选择排序-n2</h2>
+          </div>
+<h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><p>从待排序的数据元素中选出最小（或最大）的一个元素，存放在序列的起始位置，然后再从剩余的未排序元素中寻找到最小（大）元素，然后放到已排序的序列的末尾。以此类推，直到全部待排序的数据元素的个数为零。选择排序是不稳定的排序方法。</p>
+<h3 id="代码-1"><a href="#代码-1" class="headerlink" title="代码"></a>代码</h3><figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">selectSort</span></span>(list: <span class="type">List</span>[<span class="type">Int</span>]): <span class="type">List</span>[<span class="type">Int</span>] = {</span><br><span class="line"></span><br><span class="line">  <span class="meta">@scala</span>.annotation.tailrec</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">select</span></span>(list: <span class="type">List</span>[<span class="type">Int</span>], remains: <span class="type">List</span>[<span class="type">Int</span>], sorted: <span class="type">List</span>[<span class="type">Int</span>]): <span class="type">List</span>[<span class="type">Int</span>] = list <span class="keyword">match</span> {</span><br><span class="line">    <span class="keyword">case</span> head :: <span class="type">Nil</span> =&gt;</span><br><span class="line">      <span class="keyword">if</span> (remains.nonEmpty) select(remains, <span class="type">Nil</span>, head :: sorted) <span class="keyword">else</span> head :: sorted</span><br><span class="line">    <span class="keyword">case</span> h1 :: h2 :: tail =&gt;</span><br><span class="line">      <span class="keyword">if</span> (h1 &gt; h2) select(h1 :: tail, h2 :: remains, sorted)</span><br><span class="line">      <span class="keyword">else</span> select(h2 :: tail, h1 :: remains, sorted)</span><br><span class="line">  }</span><br><span class="line"></span><br><span class="line">  select(list, <span class="type">Nil</span>, <span class="type">Nil</span>)</span><br><span class="line"></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/scala/" rel="tag"># scala</a>
+              <a href="/tags/algo/" rel="tag"># algo</a>
+              <a href="/tags/offer/" rel="tag"># offer</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/02/22/hexo-next-设置gitalk评论系统/" rel="prev" title="hexo next 设置gitalk评论系统">
+      <i class="fa fa-chevron-left"></i> hexo next 设置gitalk评论系统
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/02/24/Scala可变容器类/" rel="next" title="Scala可变容器类">
+      Scala可变容器类 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#冒泡排序-n2"><span class="nav-number">1.</span> <span class="nav-text">冒泡排序-n2</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#原理"><span class="nav-number">1.1.</span> <span class="nav-text">原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#scala实现思路"><span class="nav-number">1.2.</span> <span class="nav-text">scala实现思路</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#具体实现"><span class="nav-number">1.3.</span> <span class="nav-text">具体实现</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#循环"><span class="nav-number">1.3.1.</span> <span class="nav-text">循环</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#尾递归"><span class="nav-number">1.3.2.</span> <span class="nav-text">尾递归</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#快速排序-nlogn"><span class="nav-number">2.</span> <span class="nav-text">快速排序-nlogn</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#原理-1"><span class="nav-number">2.1.</span> <span class="nav-text">原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实现思路"><span class="nav-number">2.2.</span> <span class="nav-text">实现思路</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#代码"><span class="nav-number">2.3.</span> <span class="nav-text">代码</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#插入排序-n2"><span class="nav-number">3.</span> <span class="nav-text">插入排序-n2</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#原理-2"><span class="nav-number">3.1.</span> <span class="nav-text">原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#scala实现思路-1"><span class="nav-number">3.2.</span> <span class="nav-text">scala实现思路</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#scala代码实现"><span class="nav-number">3.3.</span> <span class="nav-text">scala代码实现</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#尾递归实现"><span class="nav-number">3.3.1.</span> <span class="nav-text">尾递归实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#循环实现"><span class="nav-number">3.3.2.</span> <span class="nav-text">循环实现</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#归并排序-nlogn"><span class="nav-number">4.</span> <span class="nav-text">归并排序-nlogn</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#原理-3"><span class="nav-number">4.1.</span> <span class="nav-text">原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#scala实现思路-2"><span class="nav-number">4.2.</span> <span class="nav-text">scala实现思路</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#scala代码实现-1"><span class="nav-number">4.3.</span> <span class="nav-text">scala代码实现</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#选择排序-n2"><span class="nav-number">5.</span> <span class="nav-text">选择排序-n2</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#思路"><span class="nav-number">5.1.</span> <span class="nav-text">思路</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#代码-1"><span class="nav-number">5.2.</span> <span class="nav-text">代码</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Freehuber" src="/images/avatar.gif">
+  <p class="site-author-name" itemprop="name">Freehuber</p>
+  <div class="site-description" itemprop="description">左手写诗，右手撸码</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">57</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">40</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/freehubs" title="GitHub → https://github.com/freehubs" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  © 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Freehuber</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  
+  
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+
+
+
+
+
+<script src="/bundle.js"></script><script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: '47209006cdab2e987d9e',
+      clientSecret: 'c7df73e28dcfcef507958f6cf2457857ac9776be',
+      repo: 'freehubs.github.io',
+      owner: 'freehubs',
+      admin: ['freehubs'],
+      id: '52e3a6fd34ecaee468759fc4dfe4e643',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script></body></html>

@@ -1,0 +1,524 @@
+<!DOCTYPE html><html lang="zh-Hans"><head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/1281.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/323.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/161.png">
+  <link rel="mask-icon" href="/images/atom.svg" color="#222">
+
+
+
+
+
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://freehubs.github.io').hostname,
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.7.1',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="在数据库中，并发性支持是必须的，而且它们的用例也很容易理解。至少，我们希望尽可能支持并发的读和写。添加一个机制来发现已获得的当前锁是很有用的。没有立即添加API来显式获取任何锁的需求，因此所有锁都是隐式获得的。以下锁定模式将在hive中定义(注意，不需要意图锁)。 12共享(S)独占(X) 顾名思义，可以同时获得多个共享锁，而X锁可以阻止所有其他锁。兼容性矩阵如下:对于某些操作，锁在本质上是分层的">
+<meta name="keywords" content="hive">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hive锁介绍-翻译自官方文档">
+<meta property="og:url" content="https://freehubs.github.io/2017/12/11/Hive锁介绍-翻译自官方文档/index.html">
+<meta property="og:site_name" content="Freehubs">
+<meta property="og:description" content="在数据库中，并发性支持是必须的，而且它们的用例也很容易理解。至少，我们希望尽可能支持并发的读和写。添加一个机制来发现已获得的当前锁是很有用的。没有立即添加API来显式获取任何锁的需求，因此所有锁都是隐式获得的。以下锁定模式将在hive中定义(注意，不需要意图锁)。 12共享(S)独占(X) 顾名思义，可以同时获得多个共享锁，而X锁可以阻止所有其他锁。兼容性矩阵如下:对于某些操作，锁在本质上是分层的">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15129574898000.jpg">
+<meta property="og:image" content="http://oliji9s3j.bkt.clouddn.com/15129575385061.jpg">
+<meta property="og:updated_time" content="2020-09-09T04:36:35.745Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Hive锁介绍-翻译自官方文档">
+<meta name="twitter:description" content="在数据库中，并发性支持是必须的，而且它们的用例也很容易理解。至少，我们希望尽可能支持并发的读和写。添加一个机制来发现已获得的当前锁是很有用的。没有立即添加API来显式获取任何锁的需求，因此所有锁都是隐式获得的。以下锁定模式将在hive中定义(注意，不需要意图锁)。 12共享(S)独占(X) 顾名思义，可以同时获得多个共享锁，而X锁可以阻止所有其他锁。兼容性矩阵如下:对于某些操作，锁在本质上是分层的">
+<meta name="twitter:image" content="http://oliji9s3j.bkt.clouddn.com/15129574898000.jpg">
+
+<link rel="canonical" href="https://freehubs.github.io/2017/12/11/Hive锁介绍-翻译自官方文档/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Hive锁介绍-翻译自官方文档 | Freehubs</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Freehubs" type="application/atom+xml">
+<script>function loadCss(l){var d=document,h=d.head,s=d.createElement('link');s.rel='stylesheet';s.href=l;!function e(f){if (d.body)return f();setTimeout(function(){e(f)})}(function(){h.appendChild(s);});}loadCss('/style.css');loadCss('//stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css');loadCss('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css');</script><noscript><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="//stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"><link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css"></noscript></head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Freehubs</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-数工">
+
+    <a href="/bigdata" rel="section">数工</a>
+
+  </li>
+        <li class="menu-item menu-item-面试">
+
+    <a href="/tags/offer/" rel="section">面试</a>
+
+  </li>
+        <li class="menu-item menu-item-算法">
+
+    <a href="/tags/algo/" rel="section">算法</a>
+
+  </li>
+        <li class="menu-item menu-item-gem">
+
+    <a href="/gem/" rel="section">GEM</a>
+
+  </li>
+        <li class="menu-item menu-item-生活">
+
+    <a href="/tags/life/" rel="section">生活</a>
+
+  </li>
+        <li class="menu-item menu-item-归档">
+
+    <a href="/archives/" rel="section">归档</a>
+
+  </li>
+        <li class="menu-item menu-item-标签">
+
+    <a href="/tags/" rel="section">标签</a>
+
+  </li>
+        <li class="menu-item menu-item-博客">
+
+    <a href="/categories/blog/" rel="section">博客</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger">Search
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="Searching..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope="" itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://freehubs.github.io/2017/12/11/Hive锁介绍-翻译自官方文档/">
+
+    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Freehuber">
+      <meta itemprop="description" content="左手写诗，右手撸码">
+    </span>
+
+    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Freehubs">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Hive锁介绍-翻译自官方文档<a href="https://github.com/freehubs/freehubs.github.io.source/tree/master/source/_posts/Hive锁介绍-翻译自官方文档.md" class="post-edit-link" title="Edit this post" rel="noopener" target="_blank"><i class="fa fa-pencil"></i></a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-12-11 09:58:58" itemprop="dateCreated datePublished" datetime="2017-12-11T09:58:58+00:00">2017-12-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-09-09 04:36:35" itemprop="dateModified" datetime="2020-09-09T04:36:35+00:00">2020-09-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/hive/" itemprop="url" rel="index">
+                    <span itemprop="name">hive</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在数据库中，并发性支持是必须的，而且它们的用例也很容易理解。至少，我们希望尽可能支持并发的读和写。添加一个机制来发现已获得的当前锁是很有用的。没有立即添加API来显式获取任何锁的需求，因此所有锁都是隐式获得的。以下锁定模式将在hive中定义(注意，不需要意图锁)。</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">共享(S)</span><br><span class="line">独占(X)</span><br></pre></td></tr></tbody></table></figure>
+<p>顾名思义，可以同时获得多个共享锁，而X锁可以阻止所有其他锁。<br>兼容性矩阵如下:<br><img src="http://oliji9s3j.bkt.clouddn.com/15129574898000.jpg" alt=""><br>对于某些操作，锁在本质上是分层的——例如，对于某些分区操作，表也被锁定(以确保在创建新分区时不能删除表)。<br><a id="more"></a><br>锁定模式下获取的合理性如下:</p>
+<p>对于非分区表，锁模式非常直观。读取表时，获取一个S锁，而所有其他操作(插入表、alter table等其他操作)获得一个X锁。</p>
+<p>对于分区表，其思想如下:</p>
+<p>在执行读操作时，获取表和相关分区的 ‘S’ 锁。对于所有其他操作，在分区上执行“X”锁。但是，如果更改只适用于较新的分区，则在表上获得“S”锁，而如果更改适用于所有分区，则在表上获得“X”锁。因此，旧分区可以被读取和写入，而新的分区则被转换为RCFile。每当一个分区被锁定在任何模式时，它的所有父级都被锁在“S”模式中。</p>
+<p>基于此，为操作获得的锁如下:<br><img src="http://oliji9s3j.bkt.clouddn.com/15129575385061.jpg" alt=""></p>
+<p>为了避免死锁，这里提出了一个非常简单的方案。所有要锁定的对象都是按字母顺序排序的，然后获取所需的模式锁。请注意，在某些情况下，可能不知道对象列表——例如，在动态分区的情况下，正在修改的分区列表在编译时是未知的——因此，列表的生成是保守的。由于分区的数量可能不知道，所以应该将一个专用锁(但目前不是由于hive -3509 bug)放在表上，或者是已知的前缀。</p>
+<p>将添加两个新的可配置参数来决定锁的重试次数和每次重试之间的等待时间。如果重试的次数真的很高，它会导致一个活锁。看看ZooKeeper，看看如何使用ZooKeeper api实现读写锁。请注意，锁请求将被拒绝，而不是等待。现有的锁将被释放，所有的锁将在重试间隔后重试。</p>
+<p>上面列出的不会按照指定的方式工作，因为锁的等级性。</p>
+<p>表T的“S”锁指定如下:</p>
+<ul>
+<li>调用create()创建具有路径名的节点“/ warehouse/T/ read—”。这是协议后面使用的锁节点。确保设置顺序和临时标志。</li>
+<li>在锁定节点上调用getChildren()，而无需设置观察标志。</li>
+<li>如果有一个以“write -”开头的路径名的孩子，以及一个较低的序列数，那么这个锁就不能被获取。删除第一步中创建的节点并返回。</li>
+<li>否则，锁就被授予了。</li>
+</ul>
+<p>表T的“X”锁定如下:</p>
+<ul>
+<li>调用create()创建具有路径名的节点“/ warehouse/T/ write—”。这是协议后面使用的锁节点。确保设置顺序和临时标志。</li>
+<li>在锁定节点上调用getChildren()，而无需设置观察标志。</li>
+<li>如果有一个以“读-”或“写-”开头的路径名的孩子，并以较低的序列号开始，就不能获得锁。删除第一步中创建的节点并返回。</li>
+<li>否则，锁就被授予了。</li>
+</ul>
+<p>默认的Hive行为不会更改，并发也不受支持。<br>您可以通过将以下变量设置为false来关闭并发性: hive.support.concurrency.</p>
+<p>您可以通过发出以下命令查看表中的锁:</p>
+<figure class="highlight sql"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> LOCKS &lt;TABLE_NAME&gt;;</span><br><span class="line"><span class="keyword">SHOW</span> LOCKS &lt;TABLE_NAME&gt; <span class="keyword">EXTENDED</span>;</span><br><span class="line"><span class="keyword">SHOW</span> LOCKS &lt;TABLE_NAME&gt; <span class="keyword">PARTITION</span> (&lt;PARTITION_DESC&gt;);</span><br><span class="line"><span class="keyword">SHOW</span> LOCKS &lt;TABLE_NAME&gt; <span class="keyword">PARTITION</span> (&lt;PARTITION_DESC&gt;) <span class="keyword">EXTENDED</span>;</span><br></pre></td></tr></tbody></table></figure>
+<p><a href="https://cwiki.apache.org/confluence/display/Hive/Configuration+Properties#ConfigurationProperties-Locking" target="_blank" rel="noopener">点我了解Hive锁定的配置属性</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/hive/" rel="tag"># hive</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/12/07/Hexo 优化-使用 AppVeyor 进行部署/" rel="prev" title="Hexo + AppVeyor 持续集成">
+      <i class="fa fa-chevron-left"></i> Hexo + AppVeyor 持续集成
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/12/11/Hive报错集/" rel="next" title="Hive报错集">
+      Hive报错集 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Freehuber" src="/images/avatar.gif">
+  <p class="site-author-name" itemprop="name">Freehuber</p>
+  <div class="site-description" itemprop="description">左手写诗，右手撸码</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">57</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">40</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/freehubs" title="GitHub → https://github.com/freehubs" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  © 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Freehuber</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  
+  
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+
+
+
+
+
+<script src="/bundle.js"></script><script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: '47209006cdab2e987d9e',
+      clientSecret: 'c7df73e28dcfcef507958f6cf2457857ac9776be',
+      repo: 'freehubs.github.io',
+      owner: 'freehubs',
+      admin: ['freehubs'],
+      id: 'c7b655c2f7e9df94be5adfb48976fc31',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script></body></html>

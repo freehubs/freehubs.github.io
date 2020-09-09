@@ -1,0 +1,887 @@
+<!DOCTYPE html><html lang="zh-Hans"><head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/1281.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/323.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/161.png">
+  <link rel="mask-icon" href="/images/atom.svg" color="#222">
+
+
+
+
+
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://freehubs.github.io').hostname,
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.7.1',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="序言            Scala是Twitter使用的主要应用编程语言之一。很多我们的基础架构都是用scala写的，我们也有一些大的库支持我们使用。虽然非常有效, Scala也是一门大的语言,经验教会我们在实践中要非常小心。 它有什么陷阱？哪些特性我们应该拥抱，哪些应该避开？我们什么时候采用“纯函数式风格”，什么时候应该避免？换句话说：哪些是我们发现的，可以高效地使">
+<meta name="keywords" content="scala">
+<meta property="og:type" content="article">
+<meta property="og:title" content="scala代码规范">
+<meta property="og:url" content="https://freehubs.github.io/2020/03/04/scala代码规范/index.html">
+<meta property="og:site_name" content="Freehubs">
+<meta property="og:description" content="序言            Scala是Twitter使用的主要应用编程语言之一。很多我们的基础架构都是用scala写的，我们也有一些大的库支持我们使用。虽然非常有效, Scala也是一门大的语言,经验教会我们在实践中要非常小心。 它有什么陷阱？哪些特性我们应该拥抱，哪些应该避开？我们什么时候采用“纯函数式风格”，什么时候应该避免？换句话说：哪些是我们发现的，可以高效地使">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2020-03-04T18:11:01.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="scala代码规范">
+<meta name="twitter:description" content="序言            Scala是Twitter使用的主要应用编程语言之一。很多我们的基础架构都是用scala写的，我们也有一些大的库支持我们使用。虽然非常有效, Scala也是一门大的语言,经验教会我们在实践中要非常小心。 它有什么陷阱？哪些特性我们应该拥抱，哪些应该避开？我们什么时候采用“纯函数式风格”，什么时候应该避免？换句话说：哪些是我们发现的，可以高效地使">
+
+<link rel="canonical" href="https://freehubs.github.io/2020/03/04/scala代码规范/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>scala代码规范 | Freehubs</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Freehubs" type="application/atom+xml">
+<script>function loadCss(l){var d=document,h=d.head,s=d.createElement('link');s.rel='stylesheet';s.href=l;!function e(f){if (d.body)return f();setTimeout(function(){e(f)})}(function(){h.appendChild(s);});}loadCss('/style.css');loadCss('//stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css');loadCss('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css');</script><noscript><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="//stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"><link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css"></noscript></head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Freehubs</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-数工">
+
+    <a href="/bigdata" rel="section">数工</a>
+
+  </li>
+        <li class="menu-item menu-item-面试">
+
+    <a href="/tags/offer/" rel="section">面试</a>
+
+  </li>
+        <li class="menu-item menu-item-算法">
+
+    <a href="/tags/algo/" rel="section">算法</a>
+
+  </li>
+        <li class="menu-item menu-item-gem">
+
+    <a href="/gem/" rel="section">GEM</a>
+
+  </li>
+        <li class="menu-item menu-item-生活">
+
+    <a href="/tags/life/" rel="section">生活</a>
+
+  </li>
+        <li class="menu-item menu-item-归档">
+
+    <a href="/archives/" rel="section">归档</a>
+
+  </li>
+        <li class="menu-item menu-item-标签">
+
+    <a href="/tags/" rel="section">标签</a>
+
+  </li>
+        <li class="menu-item menu-item-博客">
+
+    <a href="/categories/blog/" rel="section">博客</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger">Search
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="Searching..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope="" itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://freehubs.github.io/2020/03/04/scala代码规范/">
+
+    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Freehuber">
+      <meta itemprop="description" content="左手写诗，右手撸码">
+    </span>
+
+    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Freehubs">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          scala代码规范<a href="https://github.com/freehubs/freehubs.github.io.source/tree/master/source/_posts/scala代码规范.md" class="post-edit-link" title="Edit this post" rel="noopener" target="_blank"><i class="fa fa-pencil"></i></a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-03-04 18:11:01" itemprop="dateCreated datePublished" datetime="2020-03-04T18:11:01+00:00">2020-03-04</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/scala/" itemprop="url" rel="index">
+                    <span itemprop="name">scala</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <div class="note success">
+            <h2 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h2>
+          </div>
+<p>Scala是Twitter使用的主要应用编程语言之一。很多我们的基础架构都是用scala写的，我们也有一些大的库支持我们使用。虽然非常有效, Scala也是一门大的语言,经验教会我们在实践中要非常小心。 它有什么陷阱？哪些特性我们应该拥抱，哪些应该避开？我们什么时候采用“纯函数式风格”，什么时候应该避免？换句话说：哪些是我们发现的，可以高效地使用这门语言的地方？本指南试图把我们的经验提炼成短文，提供一系列最佳实践。我们使用scala主要创建一些大容量分布式系统服务——我们的建议也偏向于此——但这里的大多建议也应该自然的适用其他系统。这不是定律，但不当的使用应该被调整。</p>
+<a id="more"></a>
+<p>Scala提供很多工具使表达式可以很简洁。敲的少读的就少，读的少就能更快的读，因此简洁增强了代码的清晰。然而简洁也是一把钝器(blunt tool)也可能起到相反的效果：在考虑正确性之后，也要为读者着想。</p>
+<p>首先，用Scala编程，你不是在写Java，Haskell或Python；Scala程序不像这其中的任何一种。为了高效的使用语言，你必须用其术语表达你的问题。 强制把Java程序转成Scala程序是无用的，因为大多数情况下它会不如原来的。</p>
+<p>这不是对Scala的一篇介绍，我们假定读者熟悉这门语言。这儿有些学习Scala的资源：</p>
+<p>这是一篇“活的”文档，我们会更新它,以反映我们当前的最佳实践，但核心的思想不太可能会变： 永远重视可读性；写泛化的代码但不要牺牲清晰度； 利用简单的语言特性的威力，但避免晦涩难懂（尤其是类型系统）。最重要的，总要意识到你所做的取舍。一门成熟的(sophisticated)语言需要复杂的实现，复杂性又产生了复杂性：之于推理，之于语义，之于特性之间的交互，以及与你合作者之间的理解。因此复杂性是为成熟所交的税——你必须确保效用超过它的成本。</p>
+<p>玩的愉快。</p>
+<h2 id="格式化"><a href="#格式化" class="headerlink" title="格式化"></a>格式化</h2><p>代码格式化的规范并不重要，只要它们实用。它的定义形式没有先天的好与坏，几乎每个人都有自己的偏好。然而，对于一贯地采用同一格式化规则的总会增加可读性。已经熟悉某种特定风格的读者不必非要去掌握另一套当地习惯，或译解另一个角落里的语言语法。</p>
+<p>这对Scala来说也特别重要，因为它的语法高度的重叠。一个例子是方法调用：方法调用可以用“.”后边跟圆括号，或不使用“.”，后边用空格加不带圆括号(针对空元或一元方法)方式调用。此外，不同风格的方法调用揭露了它们在语法上不同的分歧(ambiguities)。当然一致的应用慎重的选择一组格式化规则，对人和机器来说都会消除大量的歧义。</p>
+<p>我们依着Scala style guide 增加了以下规则：</p>
+<h3 id="空格"><a href="#空格" class="headerlink" title="空格"></a>空格</h3><p>用两个空格缩进。避免每行长度超过100列。在两个方法、类、对象定义之间使用一个空白行。</p>
+<h3 id="命名"><a href="#命名" class="headerlink" title="命名"></a>命名</h3><p>对作用域较短的变量使用短名字：</p>
+<ul>
+<li>i<code>s,</code>j<code>s 和</code>k`s等可出现在循环中。</li>
+</ul>
+<p>对作用域较长的变量使用长名字：</p>
+<ul>
+<li>外部APIs应该用长的，不需加以说明便可理解的名字。例如：<code>Future.collect</code> 而非 <code>Future.all</code></li>
+</ul>
+<p>使用通用的缩写，避开隐秘难懂的缩写：</p>
+<ul>
+<li>例如每个人都知道 <code>ok</code>,<code>err</code>, <code>defn</code>等缩写的意思，而<code>sfri</code>是不常用的。</li>
+</ul>
+<p>不要在不同用途时重用同样的名字：</p>
+<ul>
+<li>使用<code>val</code>(注：Scala中的不可变类型)</li>
+</ul>
+<p>避免用 `声明保留字变量：</p>
+<ul>
+<li>用<code>typ</code>替代 <code>type</code></li>
+</ul>
+<p>用主动语态(active)来命名有副作用的操作：</p>
+<ul>
+<li><code>user.activate()</code>而非 <code>user.setActive()</code></li>
+</ul>
+<p>对有返回值的方法使用具有描述性的名字：</p>
+<ul>
+<li><code>src.isDefined</code> 而非<code>src.defined</code></li>
+</ul>
+<p>getters不采用前缀<code>get</code>：</p>
+<ul>
+<li>用get是多余的: <code>site.count</code>而非<code>site.getCount</code></li>
+</ul>
+<p>不必重复已经被package或object封装过的名字：</p>
+<p>使用：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">object</span> <span class="title">User</span> </span>{</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">get</span></span>(id: <span class="type">Int</span>): <span class="type">Option</span>[<span class="type">User</span>]</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>而非：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">object</span> <span class="title">User</span> </span>{</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">getUser</span></span>(id: <span class="type">Int</span>): <span class="type">Option</span>[<span class="type">User</span>]</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>相比 <code>get</code> 方法 <code>getUser</code> 方法中的User是多余的，并不能提供额外的信息。</p>
+<h3 id="Imports"><a href="#Imports" class="headerlink" title="Imports"></a>Imports</h3><p>对引入行按字母顺序排序： </p>
+<ul>
+<li>这样机方便了视觉上的检查，也简化了自动操作。 </li>
+</ul>
+<p>当从一个包中引入多个时，用花括号：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.twitter.concurrent.{<span class="type">Broker</span>, <span class="type">Offer</span>}</span><br></pre></td></tr></tbody></table></figure>
+<p>当引入超过6个时使用通配符：</p>
+<ul>
+<li><p>e.g.: import com.twitter.concurrent._ </p>
+</li>
+<li><p>不要轻率的使用: 一些包导入了太多的名字 </p>
+</li>
+</ul>
+<p>当引入集合的时候，通过用import scala.collections.immutable(不可变集合)或scala.collections.mutable(可变集合)来限定名称</p>
+<ul>
+<li>可变和不可变集合有相同的名字。限定名称让读者很明确知道使用的是哪个变量(e.g. “immutable.Map”) (译注，通常也会默认immutable，而在使用mutable时显示引入) </li>
+</ul>
+<p>不要使用来自其它包的相对引用：</p>
+<ul>
+<li>避免</li>
+</ul>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.twitter</span><br><span class="line"><span class="keyword">import</span> concurrent</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li>而应该用清晰的：</li>
+</ul>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.twitter.concurrent</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li>(译注，实际上上面的import不能编译通过，第二个import应该为：import twitter.concurrent 即import一个包实际是定义了这个包的别名。) </li>
+</ul>
+<p>将import放在文件的头部：</p>
+<ul>
+<li>读者可以在一个地方参考所有的引用。</li>
+</ul>
+<h3 id="花括号"><a href="#花括号" class="headerlink" title="花括号"></a>花括号</h3><p>花括号用于创建复合表达式，复合表达式的返回值是最后一个表达式。避免对简单的表达式采用花括号；写成：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">square</span></span>(x: <span class="type">Int</span>) = x*x</span><br></pre></td></tr></tbody></table></figure>
+<p>而不是：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">square</span></span>(x: <span class="type">Int</span>) = {</span><br><span class="line">   x * x</span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<p>尽管第二种方式用在区分方法体的语句构成很诱人。第一种选择更加简洁，易读。避免语句上的繁文缛节，除非需要阐明。</p>
+<h3 id="模式匹配"><a href="#模式匹配" class="headerlink" title="模式匹配"></a>模式匹配</h3><p>尽可能直接在函数定义的地方使用模式匹配。例如，下面的写法 match应该被折叠起来(collapse)</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">list map { item =&gt;</span><br><span class="line">   item <span class="keyword">match</span> {</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Some</span>(x) =&gt; x</span><br><span class="line">    <span class="keyword">case</span> <span class="type">None</span> =&gt; <span class="keyword">default</span></span><br><span class="line">   }</span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<p>用下面的写法替代：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">list map {</span><br><span class="line">   <span class="keyword">case</span> <span class="type">Some</span>(x) =&gt; x</span><br><span class="line">   <span class="keyword">case</span> <span class="type">None</span> =&gt; <span class="keyword">default</span></span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<p>它很清晰的表达了 list中的元素都被映射，间接的方式让人不容易明白。</p>
+<h3 id="注释"><a href="#注释" class="headerlink" title="注释"></a>注释</h3><p>使用ScalaDoc提供API文档。用下面的风格：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">  * ServiceBuilder builds services</span></span><br><span class="line"><span class="comment">  * ...</span></span><br><span class="line"><span class="comment">  */</span></span><br></pre></td></tr></tbody></table></figure>
+<p>而不是非标准的ScalaDoc风格：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** ServiceBuilder builds services</span></span><br><span class="line"><span class="comment">  * ...</span></span><br><span class="line"><span class="comment">  */</span></span><br></pre></td></tr></tbody></table></figure>
+<p>不要诉诸于ASCII码艺术或其他可视化修饰。用文档记录APIs但不要添加不必要的注释。如果你发现你自己添加注释解释你的代码行为，先问问自己是否可以调整代码结构，从而可以明显地可以看出它做了什么。相对于“it works, obviously” 更偏向于“obviously it works”</p>
+<h2 id="类型和泛型"><a href="#类型和泛型" class="headerlink" title="类型和泛型"></a>类型和泛型</h2><p>类型系统的首要目的是检测程序错误。类型系统有效的提供了一个静态检测的有限形式，允许我们代码中明确某种类型的变量并且编译器可以验证。类型系统当然也提供了其他好处，但错误检测是他存在的理由(Raison d’Être)</p>
+<p>我们使用类型系统应当反映这一目标，但我们必须考虑到读者（译注：读你代码的人）：明智地使用类型可以增加清晰度，而过份聪明只会迷乱。</p>
+<p>Scala的强大类型系统是学术探索和实践共同来源(例如Type level programming in Scala) 。但这是一个迷人的学术话题，这些技术很少在应用和正式产品代码中使用。它们应该被避免。</p>
+<h3 id="返回类型注解-annotation"><a href="#返回类型注解-annotation" class="headerlink" title="返回类型注解(annotation)"></a>返回类型注解(annotation)</h3><p>尽管Scala允许返回类型是可以省略的，加上它们提供了很好的文档：这对public方法特别重要。而当一个方法不需要对外暴露，并且它的返回值类型是显而易见的时候，则可以直接省略。</p>
+<p>在使用混入(mixin)实例化对象时这一点尤其重要，Scala编译器为这些对象创造了单类。例如：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">trait</span> <span class="title">Service</span></span></span><br><span class="line"><span class="class">  <span class="title">def</span> <span class="title">make</span>(<span class="params"></span>) </span>= <span class="keyword">new</span> <span class="type">Service</span> {</span><br><span class="line">   <span class="function"><span class="keyword">def</span> <span class="title">getId</span> </span>= <span class="number">123</span></span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<p>上面的make不需要定义返回类型为Service；编译器会创建一个加工过的类型: Object with Service{def getId:Int}(译注:with是Scala里的mixin的语法)。若用一个显式的注释：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">make</span></span>(): <span class="type">Service</span> = <span class="keyword">new</span> <span class="type">Service</span>{}</span><br></pre></td></tr></tbody></table></figure>
+<p>现在作者则不必改变make方法的公开类型而随意的混入(mix in) 更多的特质(traits)，使向后兼容很容易实现。</p>
+<h3 id="变型"><a href="#变型" class="headerlink" title="变型"></a>变型</h3><p>变型(Variance)发生在泛型与子类型化(subtyping)结合的时候。与容器类型的子类型化有关，它们定义了对所包含的类型如何子类型化。因为Scala有声明点变型(declaration site variance)注释（annotation），公共库的作者——特别是集合——必须有丰富的注释器。这些注释对共享代码的可用性很重要，但滥用也会很危险。</p>
+<p>不可变(invariants)是Scala类型系统中高级部分，但也是必须的一面，因为它有助于子类型化的应用，应该广泛(并且正确)地使用。</p>
+<p>不可变(Immutable)集合应该是协变的**(covariant)。接受容器化类型得方法应该适当地降级(downgrade)集合：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">trait</span> <span class="title">Collection</span>[+<span class="type">T</span>] </span>{</span><br><span class="line">   <span class="function"><span class="keyword">def</span> <span class="title">add</span></span>[<span class="type">U</span> &gt;: <span class="type">T</span>](other: <span class="type">U</span>): <span class="type">Collection</span>[<span class="type">U</span>]</span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<p>可变(mutable)集合应该是不可变的**(invariant). 协变对于可变集合是典型无效的。考虑：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">trait</span> <span class="title">HashSet</span>[+<span class="type">T</span>] </span>{</span><br><span class="line">   <span class="function"><span class="keyword">def</span> <span class="title">add</span></span>[<span class="type">U</span> &gt;: <span class="type">T</span>](item: <span class="type">U</span>)</span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<p>和下面的类型层级：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">trait</span> <span class="title">Mammal</span></span></span><br><span class="line"><span class="class"><span class="title">trait</span> <span class="title">Dog</span> <span class="keyword">extends</span> <span class="title">Mammal</span></span></span><br><span class="line"><span class="class"><span class="title">trait</span> <span class="title">Cat</span> <span class="keyword">extends</span> <span class="title">Mammal</span></span></span><br></pre></td></tr></tbody></table></figure>
+<p>如果我现在有一个狗(dog)的 HashSet：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> dogs: <span class="type">HashSetDog</span></span><br></pre></td></tr></tbody></table></figure>
+<p>把它作为一个哺乳动物的Set，增加一只猫(cat)</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> mammals: <span class="type">HashSetMammal</span> = dogs</span><br><span class="line">mammals.add(<span class="keyword">new</span> <span class="type">Cat</span>{})</span><br></pre></td></tr></tbody></table></figure>
+<p>这将不再是一个只存储狗(dog)的HashSet！</p>
+<h3 id="类型别名"><a href="#类型别名" class="headerlink" title="类型别名"></a>类型别名</h3><p>类型别名应当在其提供了便捷的命名或阐明意图时使用，但对于自解释（不言自明）的类型不要使用类型别名。比如</p>
+<p><code>() =&gt; Int</code></p>
+<p>比下面定义的别名IntMarker更清晰</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">type</span> <span class="title">IntMaker</span> </span>= () =&gt; <span class="type">Int</span></span><br><span class="line"><span class="type">IntMaker</span></span><br></pre></td></tr></tbody></table></figure>
+<p>但，下面的别名:</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ConcurrentPool</span>[<span class="type">K</span>, <span class="type">V</span>] </span>{</span><br><span class="line">   <span class="class"><span class="keyword">type</span> <span class="title">Queue</span> </span>= <span class="type">ConcurrentLinkedQueue</span>[<span class="type">V</span>]</span><br><span class="line">   <span class="class"><span class="keyword">type</span> <span class="title">Map</span>  </span>= <span class="type">ConcurrentHashMap</span>[<span class="type">K</span>, <span class="type">Queue</span>]</span><br><span class="line">   ...</span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<p>是有用的，因为它表达了目的并更加简短。</p>
+<p>当使用类型别名的时候不要使用子类型化(subtyping)</p>
+<p><code>trait SocketFactory extends (SocketAddress =&gt; Socket)</code></p>
+<p>SocketFactory 是一个生产Socket的方法。使用一个类型别名更好：</p>
+<p><code>type SocketFactory = SocketAddress =&gt; Socket</code></p>
+<p>我们现在可以对 SocketFactory类型的值 提供函数字面量(function literals) ,也可以使用函数组合：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> addrToInet: <span class="type">SocketAddress</span> =&gt; <span class="type">Long</span></span><br><span class="line"><span class="keyword">val</span> inetToSocket: <span class="type">Long</span> =&gt; <span class="type">Socket</span></span><br><span class="line"> </span><br><span class="line"><span class="keyword">val</span> factory: <span class="type">SocketFactory</span> = addrToInet andThen inetToSocket</span><br></pre></td></tr></tbody></table></figure>
+<p>类型别名通过用 package object 将名字绑定在顶层:</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.twitter</span><br><span class="line"><span class="keyword">package</span> <span class="class"><span class="keyword">object</span> <span class="title">net</span> </span>{</span><br><span class="line">  <span class="class"><span class="keyword">type</span> <span class="title">SocketFactory</span> </span>= (<span class="type">SocketAddress</span>) =&gt; <span class="type">Socket</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>注意类型别名不是新类型——他们等价于在语法上用别名代替了原类型。</p>
+<h3 id="隐式转换"><a href="#隐式转换" class="headerlink" title="隐式转换"></a>隐式转换</h3><p>隐式转换是类型系统里一个强大的功能，但应当谨慎地使用。它们有复杂的解决规则， 使得通过简单的词法检查领会实际发生了什么很困难。在下面的场景使用隐式转换是OK的：</p>
+<ul>
+<li><a href="https://twitter.github.io/effectivescala/index-cn.html" target="_blank" rel="noopener">扩展或增加一个Scala风格的集合</a></li>
+<li><a href="https://twitter.github.io/effectivescala/index-cn.html" target="_blank" rel="noopener">适配或扩展一个对象(pimp my library模式）（译注参见：http://www.artima.com/weblogs/viewpost.jsp?thread=179766)</a></li>
+<li><a href="https://twitter.github.io/effectivescala/index-cn.html" target="_blank" rel="noopener">通过提供约束证据来加强类型安全。</a></li>
+<li><a href="https://twitter.github.io/effectivescala/index-cn.html" target="_blank" rel="noopener">提供了类型的证据 (typeclassing，haskell中的概念，指定义一组函数，其实现因所给的数据类型不同而不同)</a></li>
+<li><a href="https://twitter.github.io/effectivescala/index-cn.html" target="_blank" rel="noopener">用于Manifests (注：Manifest[T]包含类型T的运行时信息)</a></li>
+</ul>
+<p>如果你发现自己在用隐式转换，总要问问自己是否不使用这种方式也可以达到目的。</p>
+<p>不要使用隐式转换对两个相似的数据类型做自动转换(例如，把list转换为stream);显示地做更好，因为不同类型有不同的语意，读者应该意识到这些含义。 译注： 1）一些单词的意义不同，但翻译为中文时可能用的相似的词语，比如mutable， Immutable 这两个翻译为可变和不可变，它们是指数据的可变与不可变。 variance, invariant 也翻译为 可变和不可变，（variance也翻译为“变型”），它们是指类型的可变与不可变。variance指支持协变或逆变的类型，invariant则相反。</p>
+<h2 id="集合"><a href="#集合" class="headerlink" title="集合"></a>集合</h2><p>Scala有一个非常通用，丰富，强大，可组合的集合库；集合是高阶的(high level)并暴露了一大套操作方法。很多集合的处理和转换可以被表达的简洁又可读，但不审慎地用它们的功能也会导致相反的结果。每个Scala程序员应该阅读 集合设计文档；通过它可以很好地洞察集合库，并了解设计动机。</p>
+<p>总使用最简单的集合来满足你的需求</p>
+<h3 id="集合的使用"><a href="#集合的使用" class="headerlink" title="集合的使用"></a>集合的使用</h3><p>优先使用不可变集合。不可变集合适用于大多数情况，让程序易于理解和推断，因为它们是引用透明的( referentially transparent )因此缺省也是线程安全的。</p>
+<p>使用可变集合时，明确地引用可变集合的命名空间。不要用使用import scala.collection.mutable._ 然后引用 Set ，应该用下面的方式替代：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> scala.collections.mutable</span><br><span class="line"><span class="keyword">val</span> set = mutable.<span class="type">Set</span>()</span><br></pre></td></tr></tbody></table></figure>
+<p>这样就很明确在使用一个可变集合。</p>
+<p>使用集合类型缺省的构造函数。每当你需要一个有序的序列(不需要链表语义)，用 Seq() 等诸如此类的方法构造：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> seq = <span class="type">Seq</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span><br><span class="line"><span class="keyword">val</span> set = <span class="type">Set</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span><br><span class="line"><span class="keyword">val</span> map = <span class="type">Map</span>(<span class="number">1</span> -&gt; <span class="string">"one"</span>, <span class="number">2</span> -&gt; <span class="string">"two"</span>, <span class="number">3</span> -&gt; <span class="string">"three"</span>)</span><br></pre></td></tr></tbody></table></figure>
+<p>这种风格从语意上分离了集合与它的实现，让集合库使用更适当的类型：你需要Map，而不是必须一个红黑树(Red-Black Tree，注：红黑树TreeMap是Map的实现者)</p>
+<p>此外，默认的构造函数通常使用专有的表达式，例如：Map() 将使用有3个成员的对象(专用的Map3类)来映射3个keys。</p>
+<p>上面的推论是：在你自己的方法和构造函数里，适当地接受最宽泛的集合类型。通常可以归结为Iterable, Seq, Set, 或 Map中的一个。如果你的方法需要一个 sequence，使用 Seq[T]，而不是List[T]</p>
+<h3 id="风格"><a href="#风格" class="headerlink" title="风格"></a>风格</h3><p>函数式编程鼓励使用流水线转换将一个不可变的集合塑造为想要的结果。这常常会有非常简明的方案，但也容易迷糊读者——很难领悟作者的意图，或跟踪所有隐含的中间结果。例如，我们想要从一组语言中汇集不同的程序语言的投票，按照得票的顺序显示(语言，票数)：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> votes = <span class="type">Seq</span>((<span class="string">"scala"</span>, <span class="number">1</span>), (<span class="string">"java"</span>, <span class="number">4</span>), (<span class="string">"scala"</span>, <span class="number">10</span>), (<span class="string">"scala"</span>, <span class="number">1</span>), (<span class="string">"python"</span>, <span class="number">10</span>))</span><br><span class="line"><span class="keyword">val</span> orderedVotes = votes</span><br><span class="line">   .groupBy(<span class="number">.1</span>)</span><br><span class="line">   .map { <span class="keyword">case</span> (which, counts) =&gt;</span><br><span class="line">    (which, counts.foldLeft(<span class="number">0</span>)(_ + <span class="number">.2</span>))</span><br><span class="line">   }.toSeq</span><br><span class="line">   .sortBy(<span class="number">.2</span>)</span><br><span class="line">   .reverse</span><br></pre></td></tr></tbody></table></figure>
+<p>上面的代码简洁并且正确，但几乎每个读者都不能理解作者的原本意图。一个策略是声明中间结果和参数：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> votesByLang = votes groupBy { <span class="keyword">case</span> (lang, ) =&gt; lang }</span><br><span class="line"><span class="keyword">val</span> sumByLang = votesByLang map { <span class="keyword">case</span> (lang, counts) =&gt;</span><br><span class="line">   <span class="keyword">val</span> countsOnly = counts map { <span class="keyword">case</span> (, count) =&gt; count }</span><br><span class="line">   (lang, countsOnly.sum)</span><br><span class="line">  }</span><br><span class="line"><span class="keyword">val</span> orderedVotes = sumByLang.toSeq</span><br><span class="line">   .sortBy { <span class="keyword">case</span> (_, count) =&gt; count }</span><br><span class="line">   .reverse</span><br></pre></td></tr></tbody></table></figure>
+<p>代码也同样简洁，但更清晰的表达了转换的发生(通过命名中间值)，和正在操作的数据的结构(通过命名参数)。如果你担心这种风格污染了命名空间，用大括号{}来将表达式分组:</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> orderedVotes = {</span><br><span class="line">   <span class="keyword">val</span> votesByLang = ...</span><br><span class="line">   ...</span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="性能"><a href="#性能" class="headerlink" title="性能"></a>性能</h3><p>高阶集合库（通常也伴随高阶构造）使推理性能更加困难：你越偏离直接指示计算机——即命令式风格——就越难准确预测一段代码的性能影响。然而推理正确性通常很容易；可读性也是加强的。在Java运行时使用Scala使得情况更加复杂，Scala对你隐藏了装箱(boxing)/拆箱(unboxing)操作，可能引发严重的性能或内存空间问题。</p>
+<p>在关注于低层次的细节之前，确保你使用的集合适合你。 确保你的数据结构没有不期望的渐进复杂度。各种Scala集合的复杂性描述在这儿。</p>
+<p>性能优化的第一条原则是理解你的应用为什么这么慢。不要使用空数据操作。在执行前分析[1]你的应用。关注的第一点是热循环(hot loops) 和大型的数据结构。过度关注优化通常是浪费精力。记住Knuth(高德纳)的格言：“过早优化是万恶之源”。</p>
+<p>如果是需要更高性能或者空间效率的场景，通常更适合使用低级的集合。对大序列使用数组替代列表(List) (不可变Vector提供了一个指称透明的转换到数组的接口) ，并考虑使用buffers替代直接序列的构造来提高性能。</p>
+<h3 id="Java集合"><a href="#Java集合" class="headerlink" title="Java集合"></a>Java集合</h3><p>使用 scala.collection.JavaConverters 与Java集合交互。它有一系列的隐式转换，添加了asJava和asScala的转换方法。使用它们这些方法确保转换是显式的，有助于阅读：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> scala.collection.<span class="type">JavaConverters</span>._</span><br><span class="line"> </span><br><span class="line"><span class="keyword">val</span> list: java.util.<span class="type">List</span>[<span class="type">Int</span>] = <span class="type">Seq</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>).asJava</span><br><span class="line"><span class="keyword">val</span> buffer: scala.collection.mutable.<span class="type">Buffer</span>[<span class="type">Int</span>] = list.asScala</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="并发"><a href="#并发" class="headerlink" title="并发"></a>并发</h2><p>现代服务是高度并发的—— 服务器通常是在10–100秒内并列上千个同时的操作——处理隐含的复杂性是创作健壮系统软件的中心主题。</p>
+<p>线程提供了一种表达并发的方式：它们给你独立的，堆共享的(heap-sharing)由操作系统调度的执行上下文。然而，在Java里线程的创建是昂贵的，是一种必须托管的资源，通常借助于线程池。这对程序员创造了额外的复杂，也造成高度的耦合：很难从所使用的基础资源中分离应用逻辑。</p>
+<p>当创建高度分散(fan-out)的服务时这种复杂度尤其明显： 每个输入请求导致一大批对另一层系统的请求。在这些系统中，线程池必须被托管以便根据每一层请求的比例来平衡：一个线程池的管理不善会导致另一个线程池也出现问题。</p>
+<p>一个健壮系统必须考虑超时和取消，两者都需要引入更多“控制”线程，使问题更加复杂。注意若线程很廉价这些问题也将会被削弱：不再需要一个线程池，超时的线程将被丢弃，不再需要额外的资源管理。</p>
+<p>因此，资源管理危害了模块化。</p>
+<h3 id="Future"><a href="#Future" class="headerlink" title="Future"></a>Future</h3><p>使用Future管理并发。它们将并发操作从资源管理里解耦出来：例如，Finagle（译注：twitter的一个RFC框架）以有效的方式在少量线程上实现并发操作的复用。Scala有一个轻量级的闭包字面语法(literal syntax)，所以Futures引入了很少的语法开销，它们成为很多程序员的第二本能。</p>
+<p>Futures允许程序员用一种可扩充的，有处理失败原则的声明风格，来表达并发计算。这些特性使我们相信它们尤其适合在函数式编程中用，这也是鼓励使用的风格。</p>
+<p>更愿意转换（transforming）future而非自己创造。Future的转换(transformations)确保失败会传播，可以通过信号取消，对于程序员来说不必考虑Java内存模型的含义。甚至一个仔细的程序员会写出下面的代码，顺序地发出10次RPC请求而后打印结果：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> p = <span class="keyword">new</span> <span class="type">Promise</span>[<span class="type">List</span>[<span class="type">Result</span>]]</span><br><span class="line"><span class="keyword">var</span> results: <span class="type">List</span>[<span class="type">Result</span>] = <span class="type">Nil</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">collect</span></span>() {</span><br><span class="line">   doRpc() onSuccess { result =&gt;</span><br><span class="line">    results = result :: results</span><br><span class="line">    <span class="keyword">if</span> (results.length &lt; <span class="number">10</span>)</span><br><span class="line">     collect()</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">     p.setValue(results)</span><br><span class="line">   } onFailure { t =&gt;</span><br><span class="line">    p.setException(t)</span><br><span class="line">   }</span><br><span class="line">  }</span><br><span class="line"> </span><br><span class="line">  collect()</span><br><span class="line">  p onSuccess { results =&gt;</span><br><span class="line">   printf(<span class="string">"Got results %s\n"</span>, results.mkString(<span class="string">", "</span>))</span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<p>程序员不得不确保RPC失败是可传播的，代码散布在控制流程中；糟糕的是，代码是错误的！ 没有声明results是volatile，我们不能确保results每次迭代会保持前一次值。Java内存模型是一个狡猾的野兽，幸好我们可以通过用声明式风格(declarative style)避开这些陷阱：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">collect</span></span>(results: <span class="type">List</span>[<span class="type">Result</span>] = <span class="type">Nil</span>): <span class="type">Future</span>[<span class="type">List</span>[<span class="type">Result</span>]] =</span><br><span class="line">   doRpc() flatMap { result =&gt;</span><br><span class="line">    <span class="keyword">if</span> (results.length &lt; <span class="number">9</span>)</span><br><span class="line">     collect(result :: results)</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">     result :: results</span><br><span class="line">   }</span><br><span class="line"> </span><br><span class="line">  collect() onSuccess { results =&gt;</span><br><span class="line">   printf(<span class="string">"Got results %s\n"</span>, results.mkString(<span class="string">", "</span>))</span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<p>我们用flatMap顺序化操作，把我们处理中的结果预追加(prepend)到list中。这是一个通用的函数式编程习语的Futures译本。这是正确的，不仅需要的样板代码(boilerplate)可以减少，易出错的可能性也会减少，并且读起来更好。</p>
+<p>Future组合子(combinators)**的使用。当操作多个futures时，Future.select，Future.join和Future.collect应该被组合编写出通用模式。</p>
+<h3 id="集合-1"><a href="#集合-1" class="headerlink" title="集合"></a>集合</h3><p>并发集合的主题充满着意见、微妙(subtleties)、教条、恐惧/不确定/怀疑(FUD)。在大多实际场景都不存在问题：总是先用最简单,最无聊，最标准的集合解决问题。 在你知道不能使用synchronized前不要去用一个并发集合：JVM有着老练的手段来使得同步开销更小，所以它的效率能让你惊讶。</p>
+<p>如果一个不可变(immutable)集合可行，就尽可能用不可变集合——它们是指称透明的(referentially transparent)，所以在并发上下文推断它们是简单的。不可变集合的改变通常用更新引用到当前值(一个var单元或一个AtomicReference)。必须小心正确地应用：原子型的(atomics)必须重试(retried)，变量(var类型的)必须声明为volatile以保证它们发布(published)到它们的线程。</p>
+<p>可变的并发集合有着复杂的语义，并利用Java内存模型的微妙的一面，所以在你使用前确定你理解它的含义——尤其对于发布更新(新的公开方法)。同步的集合同样写起来更好：像getOrElseUpdate操作不能够被并发集合正确的实现，创建复合(composite)集合尤其容易出错。</p>
+<h2 id="控制结构"><a href="#控制结构" class="headerlink" title="控制结构"></a>控制结构</h2><p>函数式风格的程序倾向于需要更少的传统的控制结构，并且使用声明式风格写的程序读起来更好。这通常意味着打破你的逻辑，拆分到若干个小的方法或函数，用匹配表达式(match expression)把他们粘在一起。函数式程序也倾向于更多面向表达式(expression-oriented)：条件分支是同一类型的值计算，for（..) yield 表达式，以及递归都是司空见惯的。</p>
+<h3 id="递归"><a href="#递归" class="headerlink" title="递归"></a>递归</h3><p>用递归术语来表达你的问题常常会使问题简化，如果应用了尾递归优化(可以通过@tailrec注释检测)，编译器甚至会将你的代码转换为正常的循环。对比一个标准的命令式版本的堆排序(fix-down):</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">fixDown</span></span>(heap: <span class="type">ArrayT</span>], m: <span class="type">Int</span>, n: <span class="type">Int</span>): <span class="type">Unit</span> = {</span><br><span class="line">   <span class="keyword">var</span> k: <span class="type">Int</span> = m</span><br><span class="line">   <span class="keyword">while</span> (n &gt;= <span class="number">2</span>k) {</span><br><span class="line">    <span class="keyword">var</span> j = <span class="number">2</span>k</span><br><span class="line">    <span class="keyword">if</span> (j &lt; n &amp;&amp; heap(j) &lt; heap(j + <span class="number">1</span>))</span><br><span class="line">     j += <span class="number">1</span></span><br><span class="line">    <span class="keyword">if</span> (heap(k) &gt;= heap(j))</span><br><span class="line">     <span class="keyword">return</span></span><br><span class="line">    <span class="keyword">else</span> {</span><br><span class="line">     swap(heap, k, j)</span><br><span class="line">     k = j</span><br><span class="line">    }</span><br><span class="line">   }</span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<p>每次进入while循环，我们工作在前一次迭代时污染过的状态。每个变量的值是那一分支所进入函数，当找到正确的位置时会在循环中返回。 (敏锐的读者会在Dijkstra的“Go To声明是有害的”一文找到相似的观点)</p>
+<p>考虑尾递归的实现[2]:</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@tailrec</span></span><br><span class="line"> <span class="keyword">final</span> <span class="function"><span class="keyword">def</span> <span class="title">fixDown</span></span>(heap: <span class="type">Array</span>[<span class="type">T</span>], i: <span class="type">Int</span>, j: <span class="type">Int</span>) {</span><br><span class="line">  <span class="keyword">if</span> (j &lt; i2) <span class="keyword">return</span></span><br><span class="line"> </span><br><span class="line">  <span class="keyword">val</span> m = <span class="keyword">if</span> (j == i2 || heap(<span class="number">2</span>i) &lt; heap(<span class="number">2</span>i+<span class="number">1</span>)) <span class="number">2</span>i <span class="keyword">else</span> <span class="number">2</span>i + <span class="number">1</span></span><br><span class="line">  <span class="keyword">if</span> (heap(m) &lt; heap(i)) {</span><br><span class="line">   swap(heap, i, m)</span><br><span class="line">   fixDown(heap, m, j)</span><br><span class="line">  }</span><br><span class="line"> }</span><br></pre></td></tr></tbody></table></figure>
+<p>每次迭代都是一个明确定义的历史清白的变量，并且没有引用单元：到处都是不变的(invariants)。更容易实现，也容易阅读。也没有性能方面的惩罚：因为方法是尾递归的，编译器会转换为标准的命令式的循环。</p>
+<h3 id="返回-Return"><a href="#返回-Return" class="headerlink" title="返回(Return)"></a>返回(Return)</h3><p>并不是说命令式结构没有价值。在很多例子中它们很适合于提前终止计算而非对每个可能终止的点存在一个条件分支：的确在上面的fixDown函数，如果我们已经在堆的结尾，一个return用于提前终止。</p>
+<p>Returns可以用于切断分支和建立不变量(establish invariants)。这减少了嵌套，并且容易推断后续的代码的正确性，从而帮助了读者。这尤其适用于卫语句(guard clauses)：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">compare</span></span>(a: <span class="type">AnyRef</span>, b: <span class="type">AnyRef</span>): <span class="type">Int</span> = {</span><br><span class="line">   <span class="keyword">if</span> (a eq b)</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span></span><br><span class="line"> </span><br><span class="line">   <span class="keyword">val</span> d = <span class="type">System</span>.identityHashCode(a) compare <span class="type">System</span>.identityHashCode(b)</span><br><span class="line">   <span class="keyword">if</span> (d != <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">return</span> d</span><br><span class="line"> </span><br><span class="line">   <span class="comment">// slow path..</span></span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<p>使用return增加了可读性</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">suffix</span></span>(i: <span class="type">Int</span>) = {</span><br><span class="line">   <span class="keyword">if</span>   (i == <span class="number">1</span>) <span class="keyword">return</span> <span class="string">"st"</span></span><br><span class="line">   <span class="keyword">else</span> <span class="keyword">if</span> (i == <span class="number">2</span>) <span class="keyword">return</span> <span class="string">"nd"</span></span><br><span class="line">   <span class="keyword">else</span> <span class="keyword">if</span> (i == <span class="number">3</span>) <span class="keyword">return</span> <span class="string">"rd"</span></span><br><span class="line">   <span class="keyword">else</span>       <span class="keyword">return</span> <span class="string">"th"</span></span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<p>上面是针对命令式语言的，在Scala中鼓励省略return</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">suffix</span></span>(i: <span class="type">Int</span>) =</span><br><span class="line">   <span class="keyword">if</span>   (i == <span class="number">1</span>) <span class="string">"st"</span></span><br><span class="line">   <span class="keyword">else</span> <span class="keyword">if</span> (i == <span class="number">2</span>) <span class="string">"nd"</span></span><br><span class="line">   <span class="keyword">else</span> <span class="keyword">if</span> (i == <span class="number">3</span>) <span class="string">"rd"</span></span><br><span class="line">   <span class="keyword">else</span>       <span class="string">"th"</span></span><br></pre></td></tr></tbody></table></figure>
+<p>但使用模式匹配更好：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">suffix</span></span>(i: <span class="type">Int</span>) = i <span class="keyword">match</span> {</span><br><span class="line">   <span class="keyword">case</span> <span class="number">1</span> =&gt; <span class="string">"st"</span></span><br><span class="line">   <span class="keyword">case</span> <span class="number">2</span> =&gt; <span class="string">"nd"</span></span><br><span class="line">   <span class="keyword">case</span> <span class="number">3</span> =&gt; <span class="string">"rd"</span></span><br><span class="line">   <span class="keyword">case</span> _ =&gt; <span class="string">"th"</span></span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<p>注意，return会有隐性开销：当在闭包内部使用时。</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">seq foreach { elem =&gt;</span><br><span class="line">   <span class="keyword">if</span> (elem.isLast)</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line"> </span><br><span class="line">   <span class="comment">// process...</span></span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<p>在字节码层实现为一个异常的捕获/声明(catching/throwing)对，用在频繁的执行的代码中，会有性能影响。</p>
+<h3 id="for循环和for推导"><a href="#for循环和for推导" class="headerlink" title="for循环和for推导"></a>for循环和for推导</h3><p>for对循环和聚集提供了简洁和自然的表达。 它在扁平化(flattening)很多序列时特别有用。for语法通过分配和派发闭包隐藏了底层的机制。这会导致意外的开销和语义；例如：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (item &lt;- container) {</span><br><span class="line">   <span class="keyword">if</span> (item != <span class="number">2</span>) <span class="keyword">return</span></span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<p>如果容器延迟计算(delays computation)会引起运行时错误，使返回不在本地上下文 (making the return nonlocal)</p>
+<p>因为这些原因，常常更可取的是直接调用foreach, flatMap, map和filter —— 但在其意义清楚的时候使用for。</p>
+<h3 id="要求require和断言-assert"><a href="#要求require和断言-assert" class="headerlink" title="要求require和断言(assert)"></a>要求require和断言(assert)</h3><p>要求(require)和断言(assert)都起到可执行文档的作用。两者都在类型系统不能表达所要求的不变量(invariants)的场景里有用。 assert用于代码假设的不变量(invariants) （内部或外部的） 例如：(译注，不变量 invariant 是指类型不可变，即不支持协变或逆变的类型变量)</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> stream = getClass.getResourceAsStream(<span class="string">"someclassdata"</span>)</span><br><span class="line">assert(stream != <span class="literal">null</span>)</span><br></pre></td></tr></tbody></table></figure>
+<p>相反，require用于表达API契约：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">fib</span></span>(n: <span class="type">Int</span>) = {</span><br><span class="line">   require(n &gt; <span class="number">0</span>)</span><br><span class="line">   ...</span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="函数式编程"><a href="#函数式编程" class="headerlink" title="函数式编程"></a>函数式编程</h2><p>面向值（value-oriented ）编程有很多优势，特别是用在与函数式编程结构相结合。这种风格强调值的转换（译注：由一个不变的值生成另一个不变的值）而非状态的改变，生成的代码是指称透明的(referentially transparent)，提供了更强的不变型(invariants)，因此容易实现。Case类(也被翻译为样本类)，模式匹配，解构绑定(destructuring bindings)，类型推断，轻量级的闭包和方法创建语法都是这一类的工具。</p>
+<h3 id="Case类模拟代数数据类型"><a href="#Case类模拟代数数据类型" class="headerlink" title="Case类模拟代数数据类型"></a>Case类模拟代数数据类型</h3><p>Case类可实现代数数据类型(ADT)编码：它们对大量的数据结构进行建模时有用，用强不变类型(invariants)提供了简洁的代码。尤其在结合模式匹配情况下。模式匹配实现了全面解析提供更强大的静态保护。 (译注：ADTs是Algebraic Data Type代数数据类型的缩写，关于这个概念见我的另一篇博客)</p>
+<p>下面是用case类模拟代数数据类型的模式</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">sealed</span> <span class="class"><span class="keyword">trait</span> <span class="title">Tree</span>[<span class="type">T</span>]</span></span><br><span class="line"><span class="class"><span class="title">case</span> <span class="title">class</span> <span class="title">NodeT</span> <span class="keyword">extends</span> <span class="title">Tree</span>[<span class="type">T</span>]</span></span><br><span class="line"><span class="class"><span class="title">case</span> <span class="title">class</span> <span class="title">LeafT</span> <span class="keyword">extends</span> <span class="title">Tree</span>[<span class="type">T</span>]</span></span><br></pre></td></tr></tbody></table></figure>
+<p>类型 Tree[T] 有两个构造函器：Node和Leaf。定义类型为sealed(封闭类)允许编译器进行彻底的分析(这是针对模式匹配的，参考Programming in Scala)因为构造器将不能从外部源文件中添加。</p>
+<p>与模式匹配一同，这个建模使得代码简洁并且显然是正确的(obviously correct)</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">findMinT</span> <span class="title">&lt;</span></span>: <span class="type">Ordered</span>[<span class="type">T</span>] = tree <span class="keyword">match</span> {</span><br><span class="line">  <span class="keyword">case</span> <span class="type">Node</span>(left, right) =&gt; <span class="type">Seq</span>(findMin(left), findMin(right)).min</span><br><span class="line">  <span class="keyword">case</span> <span class="type">Leaf</span>(value) =&gt; value</span><br><span class="line"> }</span><br></pre></td></tr></tbody></table></figure>
+<p>尽管一些递归结构，如树的组成是典型的ADTs(代数数据类型)应用，它们的用处领域更大。 disjoint,unions特别容易的用ADTs建模；这些频繁发生在状态机上(state machines)。</p>
+<h3 id="Options"><a href="#Options" class="headerlink" title="Options"></a>Options</h3><p>Option类型是一个容器，空(None)或满(Some(value))二选一。它提供了使用null的另一种安全选择，应该尽可能的替代null。它是一个集合(最多只有一个元素)并用集合操所修饰，尽量用Option。</p>
+<p>用</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> username: <span class="type">OptionString</span>] = <span class="type">None</span></span><br><span class="line">  ...</span><br><span class="line">  username = <span class="type">Some</span>(<span class="string">"foobar"</span>)</span><br></pre></td></tr></tbody></table></figure>
+<p>代替</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> username: <span class="type">String</span> = <span class="literal">null</span></span><br><span class="line">  ...</span><br><span class="line">  username = <span class="string">"foobar"</span></span><br></pre></td></tr></tbody></table></figure>
+<p>因为前者更安全：Option类型静态地强制username必须对空(emptyness)做检测。</p>
+<p>对一个Option值做条件判断应该用foreach</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (opt.isDefined)</span><br><span class="line">   operate(opt.get)</span><br></pre></td></tr></tbody></table></figure>
+<p>上面的代码应该用下面的方式替代：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">opt foreach { value =&gt;</span><br><span class="line">  operate(value)}</span><br></pre></td></tr></tbody></table></figure>
+<p>风格可能看起来有些古怪，但更安全，更简洁。如果两种情况都有(Option的None或Some)，用模式匹配</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">opt <span class="keyword">match</span> {</span><br><span class="line">  <span class="keyword">case</span> <span class="type">Some</span>(value) =&gt; operate(value)</span><br><span class="line">  <span class="keyword">case</span> <span class="type">None</span> =&gt; defaultAction()</span><br><span class="line"> }</span><br></pre></td></tr></tbody></table></figure>
+<p>但如果缺少的是缺省值，用getOrElse方法：</p>
+<p><code>operate(opt getOrElse defaultValue)</code></p>
+<p>不要过度使用Option： 如果有一个明确的缺省值——一个Null对象——直接用Null而不必用Option</p>
+<p>Option还有一个方便的构造器用于包装空值(nullable value)</p>
+<p><code>Option(getClass.getResourceAsStream("foo"))</code></p>
+<p>得到一个 Option[InputStream] 假定空值(None)时getResourceAsStream会返回null。</p>
+<h3 id="模式匹配-1"><a href="#模式匹配-1" class="headerlink" title="模式匹配"></a>模式匹配</h3><p>模式匹配(x match { …) 在良好的Scala代码中无处不在：用于合并条件执行、解构(destructuring) 、在构造中造型。使用好模式匹配可以增加程序的明晰度和安全性。</p>
+<p>使用模式匹配实现类型转换：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">obj <span class="keyword">match</span> {</span><br><span class="line">  <span class="keyword">case</span> str: <span class="type">String</span> =&gt; ...</span><br><span class="line">  <span class="keyword">case</span> addr: <span class="type">SocketAddress</span> =&gt; ...</span><br></pre></td></tr></tbody></table></figure>
+<p>模式匹配在和解构(destructuring)联合使用时效果最好（例如你要匹配case类）；下面的写法</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">animal <span class="keyword">match</span> {</span><br><span class="line">  <span class="keyword">case</span> dog: <span class="type">Dog</span> =&gt; <span class="string">"dog (%s)"</span>.format(dog.breed)</span><br><span class="line">  <span class="keyword">case</span> _ =&gt; animal.species</span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<p>应该被替代为：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">animal <span class="keyword">match</span> {</span><br><span class="line">  <span class="keyword">case</span> <span class="type">Dog</span>(breed) =&gt; <span class="string">"dog (%s)"</span>.format(breed)</span><br><span class="line">  <span class="keyword">case</span> other =&gt; other.species</span><br><span class="line"> }</span><br></pre></td></tr></tbody></table></figure>
+<p>写自定义的抽取器 (extractor)时必须有双重构造器(译注：成对出现的apply方法与unapply方法)，否则可能是不适合的。</p>
+<p>当默认的方法更有意义时，对条件执行不要用模式匹配。集合库的方法通常返回Options，避免：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> x = list <span class="keyword">match</span> {</span><br><span class="line">  <span class="keyword">case</span> head :: _ =&gt; head</span><br><span class="line">  <span class="keyword">case</span> <span class="type">Nil</span> =&gt; <span class="keyword">default</span></span><br><span class="line"> }</span><br></pre></td></tr></tbody></table></figure>
+<p>因为</p>
+<p><code>val x = list.headOption getOrElse default</code></p>
+<p>更短并且更能表达目的。</p>
+<h3 id="偏函数"><a href="#偏函数" class="headerlink" title="偏函数"></a>偏函数</h3><p>Scala提供了定义PartialFunction的语法简写：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> pf: <span class="type">PartialFunctionInt</span>, <span class="type">String</span>] = {</span><br><span class="line">  <span class="keyword">case</span> i <span class="keyword">if</span> i%<span class="number">2</span> == <span class="number">0</span> =&gt; <span class="string">"even"</span></span><br><span class="line"> }</span><br></pre></td></tr></tbody></table></figure>
+<p>它们也可能和 orElse 组合:</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> tf: (<span class="type">Int</span> =&gt; <span class="type">String</span>) = pf orElse { <span class="keyword">case</span> _ =&gt; <span class="string">"odd"</span>}</span><br><span class="line"></span><br><span class="line"> tf(<span class="number">1</span>) == <span class="string">"odd"</span></span><br><span class="line"> tf(<span class="number">2</span>) == <span class="string">"even"</span></span><br></pre></td></tr></tbody></table></figure>
+<p>偏函数出现在很多场景，并以PartialFunction有效地编码 ，例如 方法参数：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">trait</span> <span class="title">Publisher</span>[<span class="type">T</span>] </span>{</span><br><span class="line"> <span class="function"><span class="keyword">def</span> <span class="title">subscribe</span></span>(f: <span class="type">PartialFunction</span>[<span class="type">T</span>, <span class="type">Unit</span>])</span><br><span class="line">}</span><br><span class="line"> </span><br><span class="line"><span class="keyword">val</span> publisher: <span class="type">Publisher</span>[<span class="type">Int</span>] = ..</span><br><span class="line">publisher.subscribe {</span><br><span class="line"> <span class="keyword">case</span> i <span class="keyword">if</span> isPrime(i) =&gt; println(<span class="string">"found prime"</span>, i)</span><br><span class="line"> <span class="keyword">case</span> i <span class="keyword">if</span> i%<span class="number">2</span> == <span class="number">0</span> =&gt; count += <span class="number">2</span></span><br><span class="line"> <span class="comment">/* ignore the rest */</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>或在返回一个Option的情况下：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Attempt to classify the the throwable for logging.</span></span><br><span class="line">  <span class="class"><span class="keyword">type</span> <span class="title">Classifier</span> </span>= <span class="type">Throwable</span> =&gt; <span class="type">Optionjava</span>.util.logging.<span class="type">Level</span></span><br></pre></td></tr></tbody></table></figure>
+<p>可以更好的用PartialFunction表达</p>
+<p><code>type Classifier = PartialFunctionThrowable, java.util.Logging.Level</code></p>
+<p>因为它提供了更好的可组合性：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> classifier1: <span class="type">Classifier</span></span><br><span class="line"><span class="keyword">val</span> classifier2: <span class="type">Classifier</span></span><br><span class="line"> </span><br><span class="line"><span class="keyword">val</span> classifier = classifier1 orElse classifier2 orElse { _ =&gt; java.util.<span class="type">Logging</span>.<span class="type">Level</span>.<span class="type">FINEST</span> }</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="解构绑定"><a href="#解构绑定" class="headerlink" title="解构绑定"></a>解构绑定</h3><p>解构绑定与模式匹配有关。它们用了相同的机制，但解构绑定可应用在当匹配只有一种选项的时候 (以免你接受异常的可能)。解构绑定特别适用于元组(tuple)和样本类(case class).</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> tuple = ('a', <span class="number">1</span>)</span><br><span class="line"><span class="keyword">val</span> (char, digit) = tuple</span><br><span class="line"> </span><br><span class="line"><span class="keyword">val</span> tweet = <span class="type">Tweet</span>(<span class="string">"just tweeting"</span>, <span class="type">Time</span>.now)</span><br><span class="line"><span class="keyword">val</span> <span class="type">Tweet</span>(text, timestamp) = tweet</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="惰性赋值"><a href="#惰性赋值" class="headerlink" title="惰性赋值"></a>惰性赋值</h3><p>[当使用lazy修饰一个val成员时，其赋值情况是在需要时才赋值的(by need)，因为Scala中成员与方法是等价的（除了privatethis]成员）</p>
+<p><code>lazy val field = computation()</code></p>
+<p>相当于下面的简写:</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> theField = <span class="type">None</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">field</span> </span>= <span class="keyword">if</span> (theField.isDefined) _theField.get <span class="keyword">else</span> {</span><br><span class="line">   _theField = <span class="type">Some</span>(computation())</span><br><span class="line">   _theField.get</span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<p>也就是说，它在需要时计算结果并会记住结果，在要达到这种目的时使用lazy成员；但当语意上需要惰性赋值时(by semantics)，要避免使用惰性赋值，这种情况下，最好显式赋值因为它使得成本模型是明确的，并且副作用被严格的控制。</p>
+<p>Lazy成员是线程安全的。</p>
+<h3 id="传名调用"><a href="#传名调用" class="headerlink" title="传名调用"></a>传名调用</h3><p>方法参数可以指定为传名参数 (by-name) 意味着参数不是绑定到一个值，而是一个可能需要反复进行的计算。这一特性需要小心使用； 期待传值(by-value)语法的调用者会感到惊讶。这一特性的动机是构造语法自然的 DSLs——使新的控制结构可以看起来更像本地语言特征。</p>
+<p>只在下面的控制结构中使用传名调用, 调用者明显传递的是一段代码块(block)而非一个确定的计算结果。传名参数必须放在参数列表的最后一位。当使用传名调用时，确保方法名称让调用者明显感知到方法参数是传名参数。</p>
+<p>当你想要一个值被计算多次，特别是这个计算会引起副作用时，使用显式函数：</p>
+<p><code>class SSLConnector(mkEngine: () =&gt; SSLEngine)</code></p>
+<p>这样意图很明确，调用者不会感到惊奇。</p>
+<h3 id="flatMap"><a href="#flatMap" class="headerlink" title="flatMap"></a>flatMap</h3><p>[flatMap——结合了map 和 flatten —— 的使用要特别小心，它有着难以琢磨的威力和强大的实用性。类似它的兄弟 map，它也是经常在非传统的集合中使用的，例如 Future , Option。它的行为由它的（函数）签名揭示；对于一些容器 ContainerA]</p>
+<p><code>flatMap[B](f: A =&gt; Container[B]): Container[B]</code></p>
+<p>flatMap对集合中的每个元素调用了 函数 f 产生一个新的集合，将它们全部 flatten 后放入结果中。例如，获取两个字符的字符串的所有排列，相同的字符不能出现两次</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> chars = 'a' to 'z'</span><br><span class="line"> <span class="keyword">val</span> perms = chars flatMap { a =&gt;</span><br><span class="line">  chars flatMap { b =&gt;</span><br><span class="line">   <span class="keyword">if</span> (a != b) <span class="type">Seq</span>(<span class="string">"%c%c"</span>.format(a, b))</span><br><span class="line">   <span class="keyword">else</span> <span class="type">Seq</span>()</span><br><span class="line">  }</span><br><span class="line"> }</span><br></pre></td></tr></tbody></table></figure>
+<p>等价于下面这段更简洁的 for-comprehension （基本就是针对上面的语法糖）</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> perms = <span class="keyword">for</span> {</span><br><span class="line">   a &lt;- chars</span><br><span class="line">   b &lt;- chars</span><br><span class="line">   <span class="keyword">if</span> a != b</span><br><span class="line">  } <span class="keyword">yield</span> <span class="string">"%c%c"</span>.format(a, b)</span><br></pre></td></tr></tbody></table></figure>
+<p>flatMap在处理Options常常很有用—— 它将多个options链合并为一个，</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> host: <span class="type">Option</span>[<span class="type">String</span>] = ..</span><br><span class="line"> <span class="keyword">val</span> port: <span class="type">Option</span>[<span class="type">Int</span>] = ..</span><br><span class="line"></span><br><span class="line"> <span class="keyword">val</span> addr: <span class="type">Option</span>[<span class="type">InetSocketAddress</span>] =</span><br><span class="line">  host flatMap { h =&gt;</span><br><span class="line">   port map { p =&gt;</span><br><span class="line">    <span class="keyword">new</span> <span class="type">InetSocketAddress</span>(h, p)</span><br><span class="line">   }</span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<p>也可以使用更简洁的for来实现：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> addr: <span class="type">OptionInetSocketAddress</span>] = <span class="keyword">for</span> {</span><br><span class="line">   h &lt;- host</span><br><span class="line">   p &lt;- port</span><br><span class="line">  } <span class="keyword">yield</span> <span class="keyword">new</span> <span class="type">InetSocketAddress</span>(h, p)</span><br></pre></td></tr></tbody></table></figure>
+<p>对flatMap在在Futures中的使用futures一节中有讨论。</p>
+<h2 id="面向对象的编程"><a href="#面向对象的编程" class="headerlink" title="面向对象的编程"></a>面向对象的编程</h2><p>Scala的博大很大程度上在于它的对象系统。Scala中所有的值都是对象，就这一意义而言Scala是门纯粹的语言；基本类型和组合类型没有区别。Scala也提供了mixin的特性允许更多正交地、细粒度地构造一些在编译时受益于静态类型检测的可被灵活组装的模块。</p>
+<p>mixin系统的背后动机之一是消除传统的依赖注入。这种“组件风格(component style)”编程的高潮是是the cake pattern.</p>
+<h3 id="依赖注入"><a href="#依赖注入" class="headerlink" title="依赖注入"></a>依赖注入</h3><p>在我们的使用中，我们发现Scala本身删除了很多经典(构造函数)依赖注入的语法开销，我们更愿意就这样用: 它更清晰，依赖仍然植根于（构造）类型，而类构造语法是如此微不足道而变得轻而易举。有些无聊，简单，但有效。对模块化编程时使用依赖注入，特别是，组合优于继承—这使得程序更加模块化和可测试的。当遇到需要继承的情况，问问自己：在语言缺乏对继承支持的情况下如何构造程序？答案可能是令人信服的。</p>
+<p>依赖注入典型的使用到 trait （译注：可以理解为和Java中Interface相似）</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">trait</span> <span class="title">TweetStream</span> </span>{</span><br><span class="line">   <span class="function"><span class="keyword">def</span> <span class="title">subscribe</span></span>(f: <span class="type">Tweet</span> =&gt; <span class="type">Unit</span>)</span><br><span class="line">  }</span><br><span class="line">  <span class="class"><span class="keyword">class</span> <span class="title">HosebirdStream</span> <span class="keyword">extends</span> <span class="title">TweetStream</span> ...</span></span><br><span class="line"><span class="class">  <span class="title">class</span> <span class="title">FileStream</span> <span class="keyword">extends</span> <span class="title">TweetStream</span> ..</span></span><br><span class="line"><span class="class"> </span></span><br><span class="line"><span class="class">  <span class="title">class</span> <span class="title">TweetCounter</span>(<span class="params">stream: <span class="type">TweetStream</span></span>) </span>{</span><br><span class="line">   stream.subscribe { tweet =&gt; count += <span class="number">1</span> }</span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<p>这是常见的注入工厂 — 用于产生其他对象的对象。在这些例子中，更青睐用简单的函数而非专有的工厂类型。</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">FilteredTweetCounter</span>(<span class="params">mkStream: <span class="type">Filter</span> =&gt; <span class="type">TweetStream</span></span>) </span>{</span><br><span class="line">   mkStream(<span class="type">PublicTweets</span>).subscribe { tweet =&gt; publicCount += <span class="number">1</span> }</span><br><span class="line">   mkStream(<span class="type">DMs</span>).subscribe { tweet =&gt; dmCount += <span class="number">1</span> }</span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="Trait"><a href="#Trait" class="headerlink" title="Trait"></a>Trait</h3><p>依赖注入不妨碍使用公共接口，或在trait中实现公共代码。恰恰相反—正是因为以下原因而高度鼓励使用trait：一个具体的类可以实现多接口(traits)，公共的代码可以通过这些类复用。</p>
+<p>保持traits简短并且是正交的：不要把分离的功能混在一个trait里，考虑将最小的相关的意图放在一起。例如，想象一下你要做一些IO的操作：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">trait</span> <span class="title">IOer</span> </span>{</span><br><span class="line">   <span class="function"><span class="keyword">def</span> <span class="title">write</span></span>(bytes: <span class="type">Array</span>[<span class="type">Byte</span>])</span><br><span class="line">   <span class="function"><span class="keyword">def</span> <span class="title">read</span></span>(n: <span class="type">Int</span>): <span class="type">Array</span>[<span class="type">Byte</span>]</span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<p>分离两个行为：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">trait</span> <span class="title">Reader</span> </span>{</span><br><span class="line">   <span class="function"><span class="keyword">def</span> <span class="title">read</span></span>(n: <span class="type">Int</span>): <span class="type">Array</span>[<span class="type">Byte</span>]</span><br><span class="line">  }</span><br><span class="line">  <span class="class"><span class="keyword">trait</span> <span class="title">Writer</span> </span>{</span><br><span class="line">   <span class="function"><span class="keyword">def</span> <span class="title">write</span></span>(bytes: <span class="type">Array</span>[<span class="type">Byte</span>])</span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<p>可以将它们以混入(mix)的方式实现一个IOer : new Reader with Writer…接口最小化促使更好的正交性和更清晰的模块化。</p>
+<h3 id="可见性"><a href="#可见性" class="headerlink" title="可见性"></a>可见性</h3><p>Scala有很丰富的可见性修饰。使用这些可见性修饰很重要，因为它们定义了哪些构成公开API。公开APIs应该限制，这样用户不会无意中依赖实现细节并限制了作者修改它们的能力: 它们对于好的模块化设计是至关重要的。一般来说，扩展公开APIs比收缩公开的APIs容易的多。差劲的注释（annotation）也能危害到你代码向后的二进制兼容性。（译注：comments和annotation都可翻译成注释，但意义不同。annotation在Java和Scala有特定的含义）</p>
+<h4 id="private-this"><a href="#private-this" class="headerlink" title="private[this]"></a>private[this]</h4><p>一个类的成员标记为私有的，</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">val</span> x: <span class="type">Int</span> = ...</span><br></pre></td></tr></tbody></table></figure>
+<p>[它对这个类的所有实例来说都是可见的（但对其子类不可见）。大多情况，你想要的是 privatethis] 。</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span>[<span class="keyword">this</span>] <span class="keyword">val</span>: <span class="type">Int</span> = ..</span><br></pre></td></tr></tbody></table></figure>
+<p>[这个修饰限制了它只对当前特定的实例可见。Scala编译器会把privatethis]翻译为一个简单的字段访问(因为访问仅限于静态定义的类)，这样有时有助于性能优化。</p>
+<h4 id="单例类型"><a href="#单例类型" class="headerlink" title="单例类型"></a>单例类型</h4><p>在Scala中创建单例类型是很常见的，例如：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">foo</span></span>() = <span class="keyword">new</span> <span class="type">Foo</span> <span class="keyword">with</span> <span class="type">Bar</span> <span class="keyword">with</span> <span class="type">Baz</span> {</span><br><span class="line">   ...</span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<p>在这种情况下，可以通过声明返回类型来限制可见性：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">foo</span></span>(): <span class="type">Foo</span> <span class="keyword">with</span> <span class="type">Bar</span> = <span class="keyword">new</span> <span class="type">Foo</span> <span class="keyword">with</span> <span class="type">Bar</span> <span class="keyword">with</span> <span class="type">Baz</span> {</span><br><span class="line">   ...</span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<p>foo()方法的调用者会看到以返回实例(Foo with Bar)的受限视图。</p>
+<h3 id="结构类型"><a href="#结构类型" class="headerlink" title="结构类型"></a>结构类型</h3><p>不要在正常情况下使用结构类型。结构类型有着便利且强大的特性，但不幸的是在JVM上的实现不是很高效。 然而——由于实现的怪癖——它提对执行反射(reflection)供了很好的简写形式。</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> obj: <span class="type">AnyRef</span></span><br><span class="line">obj.asInstanceOf{<span class="function"><span class="keyword">def</span> <span class="title">close</span></span>()}].close()</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="垃圾回收"><a href="#垃圾回收" class="headerlink" title="垃圾回收"></a>垃圾回收</h2><p>我们对生产中花了很多时间来调整垃圾回收。垃圾回收的关注点与Java大致相似，尽管一些惯用的Scala代码比起惯用的Java代码会容易产生更多(短暂的)垃圾——函数式风格的副产品。Hotspot的分代垃圾收集通常使这不成问题，因为短暂的(short-lived)垃圾在大多情形下会被有效的释放掉。</p>
+<p>在谈GC调优话题前，先看看这个Attila的报告，它阐述了我们在GC方面的一些经验。</p>
+<p>Scala固有的问题，你能够缓解GC的方法是产生更少的垃圾；但不要在没有数据的情况下行动。除非你做了某些明显的恶化，使用各种Java的profiling工具——我们拥有的包括heapster和gcprof。</p>
+<h2 id="Java-兼容性"><a href="#Java-兼容性" class="headerlink" title="Java 兼容性"></a>Java 兼容性</h2><p>当我们写的Scala代码被Java调用时，我们要确保从Java来用仍然习惯。这常常不需要额外的努力——class和纯的trait等价于Java的中的对应类型 —— 但有时需要提供独立的Java API。一种感受你的库中的Java API好的方式是用Java写单元测试(只是为了兼容性);这也确保了你的库中的Java视图保持稳定，在这一点上不会随着时间因Scala编译器的波动而影响。</p>
+<p>包含部分实现的Trait不能直接被Java使用： 改为 extends 一个抽象类</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 不能直接被java使用</span></span><br><span class="line">  <span class="class"><span class="keyword">trait</span> <span class="title">Animal</span> </span>{</span><br><span class="line">   <span class="function"><span class="keyword">def</span> <span class="title">eat</span></span>(other: <span class="type">Animal</span>)</span><br><span class="line">   <span class="function"><span class="keyword">def</span> <span class="title">eatMany</span></span>(animals: <span class="type">SeqAnimal</span>) = animals foreach(eat(_))</span><br><span class="line">  }</span><br><span class="line"> </span><br><span class="line"><span class="comment">// 改为这样:</span></span><br><span class="line">  <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">JavaAnimal</span> <span class="keyword">extends</span> <span class="title">Animal</span></span></span><br></pre></td></tr></tbody></table></figure>
+<h2 id="Twitter标准库"><a href="#Twitter标准库" class="headerlink" title="Twitter标准库"></a>Twitter标准库</h2><p>Twitter最重要的标准库是 Util 和 Finagle。Util 可以理解为Scala和Java的标准库扩展，提供了标准库中没有的功能或已有功能的更合适的实现。Finagle 是我们的RPC系统，核心分布式系统组件。</p>
+<h3 id="Future-1"><a href="#Future-1" class="headerlink" title="Future"></a>Future</h3><p>Futures已经在并发一节中简单讨论过。它是调异步处理的中心机制，渗透在我们代码库中，也是Finagle的核心。Futures允许组合并发事件，简化了高并发操作。也是JVM上异步并发的一种高效的实现。</p>
+<p>Twitter的future是异步的，所以基本上任何操作(阻塞操作)——基本上任何可以suspend它的线程的执行；网络IO和磁盘IO是就是例子——必须由系统处理，它为结果提供future。Finagle为网络IO提供了这样一种系统。</p>
+<p>Futures清晰简单：它们持有一个尚未完成运算结果的 promise 。它们是一个简单的容器——一个占位符。一次计算当然可能会失败，这种状况必须被编码：一个Future可以是三种状态之一： pending, failed, completed。</p>
+<h3 id="闲话-组合-composition"><a href="#闲话-组合-composition" class="headerlink" title="闲话: 组合(composition)"></a>闲话: 组合(composition)</h3><p>让我们重新审视我们所说的组合：将简单的组件合成一个更复杂的。函数组合的一个权威的例子：给定函数 f 和 g，组合函数 (g∘f)(x) = g(f(x)) ——结果先对 x使用f函数，然后在使用g函数——用Scala来写：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> f = (i: <span class="type">Int</span>) =&gt; i.toString</span><br><span class="line"><span class="keyword">val</span> g = (s: <span class="type">String</span>) =&gt; s+s+s</span><br><span class="line"><span class="keyword">val</span> h = g compose f <span class="comment">// : Int =&gt; String</span></span><br><span class="line">  </span><br><span class="line">scala&gt; h(<span class="number">123</span>)</span><br><span class="line">res0: java.lang.<span class="type">String</span> = <span class="number">123123123</span></span><br></pre></td></tr></tbody></table></figure>
+<p>复合函数h，是个新的函数，由之前定义的f和g函数合成。</p>
+<p>Futures是一种集合类型——它是个包含0或1个元素的容器——你可以发现他们有标准的集合方法（eg：map, filter, foreach）。因为Future的值是延迟的，结果应用这些方法中的任何一种必然也延迟；在</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> result: <span class="type">Future</span>[<span class="type">Int</span>]</span><br><span class="line"><span class="keyword">val</span> resultStr: <span class="type">Future</span>[<span class="type">String</span>] = result map { i =&gt; i.toString }</span><br></pre></td></tr></tbody></table></figure>
+<p>函数 { i =&gt; i.toString } 不会被调用，直到int值可用；转换集合的resultStr在可用之前也一直是待定状态。</p>
+<p>List可以被扁平化(flattened)：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> listOfList: <span class="type">List</span>[<span class="type">List</span>[<span class="type">Int</span>]] = ..</span><br><span class="line"> <span class="keyword">val</span> list: <span class="type">List</span>[<span class="type">Int</span>] = listOfList.flatten</span><br></pre></td></tr></tbody></table></figure>
+<p>这对future也是有意义的：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> futureOfFuture: <span class="type">Future</span>[<span class="type">Future</span>[<span class="type">Int</span>]] = ..</span><br><span class="line"> <span class="keyword">val</span> future: <span class="type">Future</span>[<span class="type">Int</span>] = futureOfFuture.flatten</span><br></pre></td></tr></tbody></table></figure>
+<p>[因为future是延迟的，flatten的实现——立即返回——不得不返回一个等待外部future (Future[Future[Int]]) 完成的future (Future<a href="https://twitter.github.io/effectivescala/index-cn.html" target="_blank" rel="noopener">Future[Int]]).如果外部future失败，内部flattened future也将失败。</a></p>
+<p>[Future (类似List) 也定义了flatMap；FutureA] 定义方法flatMap的签名</p>
+<p>flatMap<a href="f: A => Future[B]" target="_blank" rel="noopener">B</a>: Future[B]</p>
+<p>如同组合 map 和 flatten，我们可以这样实现：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">flatMapB</span></span>: <span class="type">Future</span>[<span class="type">B</span>] = {</span><br><span class="line">   <span class="keyword">val</span> mapped: <span class="type">Future</span>[<span class="type">Future</span>[<span class="type">B</span>]] = <span class="keyword">this</span> map f</span><br><span class="line">   <span class="keyword">val</span> flattened: <span class="type">Future</span>[<span class="type">B</span>] = mapped.flatten</span><br><span class="line">   flattened</span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<p>这是一种有威力的组合！使用flatMap我们可以定义一个 Future 作为两个Future序列的结果。第二个future 的计算基于第一个的结果。想象我们需要2次RPC调用来验证一个用户身份，我们可以用下面的方式组合操作：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">getUser</span></span>(id: <span class="type">Int</span>): <span class="type">Future</span>[<span class="type">User</span>]</span><br><span class="line"> <span class="function"><span class="keyword">def</span> <span class="title">authenticate</span></span>(user: <span class="type">User</span>): <span class="type">Future</span>[<span class="type">Boolean</span>]</span><br><span class="line"></span><br><span class="line"> <span class="function"><span class="keyword">def</span> <span class="title">isIdAuthed</span></span>(id: <span class="type">Int</span>): <span class="type">Future</span>[<span class="type">Boolean</span>] =</span><br><span class="line">  getUser(id) flatMap { user =&gt; authenticate(user) }</span><br></pre></td></tr></tbody></table></figure>
+<p>这种组合类型的一个额外的好处是错误处理是内置的：如果getUser(..)或authenticate(..)失败，future 从 isAuthred(..)返回时将会失败。这里我们没有额外的错误处理的代码。</p>
+<h4 id="风格-1"><a href="#风格-1" class="headerlink" title="风格"></a>风格</h4><p>Future回调方法(respond, onSuccess, onFailure, ensure) 返回一个新的Future，并链接到调用者。这个Future被保证只有在它调用者完成后才完成，使用模式如下：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">acquireResource()</span><br><span class="line"> future onSuccess { value =&gt;</span><br><span class="line">  computeSomething(value)</span><br><span class="line"> } ensure {</span><br><span class="line">  freeResource()</span><br><span class="line"> }</span><br></pre></td></tr></tbody></table></figure>
+<p>freeResource() 被保证只有在 computeSomething之后才执行，这样就模拟了try-finally 模式。</p>
+<p>使用 onSuccess替代 foreach —— 它与 onFailure 方法对称，命名的意图更明确，并且也允许 chaining。</p>
+<p>永远避免直接创建Promise实例： 几乎每一个任务都可以通过使用预定义的组合子完成。这些组合子确保错误和取消是可传播的, 通常鼓励的数据流风格的编程，不再需要同步和volatility声明。</p>
+<p>用尾递归风格编写的代码不再导致堆栈空间泄漏，并使得以数据流风格高效的实现循环成为可能：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Node</span>(<span class="params">parent: <span class="type">Option</span>[<span class="type">Node</span>], ...</span>)</span></span><br><span class="line"><span class="class"> <span class="title">def</span> <span class="title">getNode</span>(<span class="params">id: <span class="type">Int</span></span>)</span>: <span class="type">Future</span>[<span class="type">Node</span>] = ...</span><br><span class="line"></span><br><span class="line"> <span class="function"><span class="keyword">def</span> <span class="title">getHierarchy</span></span>(id: <span class="type">Int</span>, nodes: <span class="type">List</span>[<span class="type">Node</span>] = <span class="type">Nil</span>): <span class="type">Future</span>[<span class="type">Node</span>] =</span><br><span class="line">  getNode(id) flatMap {</span><br><span class="line">   <span class="keyword">case</span> n<span class="meta">@Node</span>(<span class="type">Some</span>(parent), ..) =&gt; getHierarchy(parent, n :: nodes)</span><br><span class="line">   <span class="keyword">case</span> n =&gt; <span class="type">Future</span>.value((n :: nodes).reverse)</span><br><span class="line">  }</span><br></pre></td></tr></tbody></table></figure>
+<p>Future定义很多有用的方法： 使用 Future.value() 和 Future.exception() 来创建未满意(pre-satisfied) 的future。Future.collect(), Future.join() 和 Future.select() 提供了组合子将多个future合成一个(例如：scatter-gather操作的gather部分)。</p>
+<h4 id="Cancellation"><a href="#Cancellation" class="headerlink" title="Cancellation"></a>Cancellation</h4><p>Future实现了一种弱形式的取消。调用Future#cancel 不会直接终止运算，而是发送某个级别的可被任何处理查询的触发信号，最终满足这个future。Cancellation信号流向相反的方向：一个由消费者设置的cancellation信号，会传播到它的生产者。生产者使用 Promise的onCancellation来监听信号并执行相应的动作。</p>
+<p>这意味这cancellation语意上依赖生产者，没有默认的实现。cancellation只是一个提示。</p>
+<h4 id="Local"><a href="#Local" class="headerlink" title="Local"></a>Local</h4><p>Util的Local提供了一个位于特定的future派发树(dispatch tree)的引用单元(cell)。设定一个local的值，使这个值可以用于被同一个线程的Future 延迟的任何计算。有一些类似于thread locals(注：Java中的线程机制），不同的是它们的范围不是一个Java线程，而是一个 future 线程树。在</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">trait</span> <span class="title">User</span> </span>{</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">name</span></span>: <span class="type">String</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">incrCost</span></span>(points: <span class="type">Int</span>)</span><br><span class="line"> }</span><br><span class="line"> <span class="keyword">val</span> user = <span class="keyword">new</span> <span class="type">Local</span>[<span class="type">User</span>]</span><br><span class="line"> </span><br><span class="line"> ...</span><br><span class="line"> </span><br><span class="line"> user() = currentUser</span><br><span class="line"> rpc() ensure {</span><br><span class="line">  user().incrCost(<span class="number">10</span>)</span><br><span class="line"> }</span><br></pre></td></tr></tbody></table></figure>
+<p>在 ensure块中的 user() 将在回调被添加的时候引用 user local的值。</p>
+<p>就thread locals来说，我们的Locals非常的方便，但要尽量避免使用：除非确信通过显式传递数据时问题不能被充分的解决，哪怕解决起来有些繁重。</p>
+<p>Locals有效的被核心库使用在非常常见的问题上——线程通过RPC跟踪，传播监视器，为future的回调创建stack traces——任何其他解决方法都使得用户负担过度。Locals在几乎任何其他情况下都不适合。</p>
+<h3 id="Offer-Broker"><a href="#Offer-Broker" class="headerlink" title="Offer/Broker"></a>Offer/Broker</h3><p>并发系统由于需要协调访问数据和资源而变得复杂。Actor提出一种简化的策略：每一个actor是一个顺序的进程(process),保持自己的状态和资源,数据通过消息的方式与其它actor共享。 共享数据需要actor之间通信。</p>
+<p>Offer/Broker 建立于Actor之上，以这三种重要的方式表现：1，通信通道(Brokers)是first class——即发送消息需要通过Brokers，而非直接到actor。2, Offer/Broker 是一种同步机制：通信会话是同步的。 这意味我们可以用 Broker做为协调机制：当进程a发送一条信息给进程b；a和b都要对系统状态达成一致。3, 最后，通信可以选择性地执行：一个进程可以提出几个不同的通信，其中的一个将被获取。</p>
+<p>为了以一种通用的方式支持选择性通信（以及其他组合），我们需要将通信的描述和执行解耦。这正是Offer做的——它是一个持久数据用于描述一次通信；为了执行这个通信（offer执行），我们通过它的sync()方法同步</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">trait</span> <span class="title">Offer</span>[<span class="type">T</span>] </span>{</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">sync</span></span>(): <span class="type">Future</span>[<span class="type">T</span>]</span><br><span class="line"> }</span><br></pre></td></tr></tbody></table></figure>
+<p>返回 Future[T] 当通信被获取的时候生成交换值。</p>
+<p>Broker通过offer协调值的交换——它是通信的通道：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">trait</span> <span class="title">Broker</span>[<span class="type">T</span>] </span>{</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">send</span></span>(msg: <span class="type">T</span>): <span class="type">Offer</span>[<span class="type">Unit</span>]</span><br><span class="line">  <span class="keyword">val</span> recv: <span class="type">Offer</span>[<span class="type">T</span>]</span><br><span class="line"> }</span><br></pre></td></tr></tbody></table></figure>
+<p>所以，当创建两个offer</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> b: <span class="type">Broker</span>[<span class="type">Int</span>]</span><br><span class="line"><span class="keyword">val</span> sendOf = b.send(<span class="number">1</span>)</span><br><span class="line"><span class="keyword">val</span> recvOf = b.recv</span><br></pre></td></tr></tbody></table></figure>
+<p>sendOf和recvOf都同步</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// In process 1:</span></span><br><span class="line"> sendOf.sync()</span><br><span class="line"> </span><br><span class="line"> <span class="comment">// In process 2:</span></span><br><span class="line"> recvOf.sync()</span><br></pre></td></tr></tbody></table></figure>
+<p>两个offer都获取并且值1被交换。</p>
+<p>通过将多个offer和Offer.choose绑定来执行可选择通信。</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">chooseT</span></span>: <span class="type">Offer</span>[<span class="type">T</span>]</span><br></pre></td></tr></tbody></table></figure>
+<p>上面的代码生成一个新的offer，当同步时获取一个特定的ofs——第一个可用的。当多个都立即可用时，随机获取一个。</p>
+<p>Offer对象有些一次性的Offers用于与来自Broker的Offer构建。</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Offer</span>.timeout(duration): <span class="type">Offer</span>[<span class="type">Unit</span>]</span><br></pre></td></tr></tbody></table></figure>
+<p>offer在给定时间后激活。Offer.never将用于不会有效，Offer.const(value)在给定值后立即有效。这些操作由选择性通信来组合是非常有用的。例如，在一个send操作中使用超时：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Offer</span>.choose(</span><br><span class="line">  <span class="type">Offer</span>.timeout(<span class="number">10.</span>seconds),</span><br><span class="line">  broker.send(<span class="string">"my value"</span>)</span><br><span class="line"> ).sync()</span><br></pre></td></tr></tbody></table></figure>
+<p>人们可能会比较 Offer/Broker 与SynchronousQueue，他们有细微但非常重要的区别。Offer可以被组合，而queue不能。例如，考虑一组queues，描述为 Brokers:</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> q0 = <span class="keyword">new</span> <span class="type">Broker</span>[<span class="type">Int</span>]</span><br><span class="line"><span class="keyword">val</span> q1 = <span class="keyword">new</span> <span class="type">Broker</span>[<span class="type">Int</span>]</span><br><span class="line"><span class="keyword">val</span> q2 = <span class="keyword">new</span> <span class="type">Broker</span>[<span class="type">Int</span>]</span><br></pre></td></tr></tbody></table></figure>
+<p>现在让我们为读取创建一个合并的queue</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> anyq: <span class="type">Offer</span>[<span class="type">Int</span>] = <span class="type">Offer</span>.choose(q0.recv, q1.recv, q2.recv)</span><br></pre></td></tr></tbody></table></figure>
+<p>anyq是一个将从第一个可用的queue中读取的offer。注意 anyq 仍是同步的——我们仍然拥有底层队列的语义。这类组合是不可能用queue实现的。</p>
+<h4 id="例子：一个简单的连接池"><a href="#例子：一个简单的连接池" class="headerlink" title="例子：一个简单的连接池"></a>例子：一个简单的连接池</h4><p>连接池在网络应用中很常见，并且它们的实现常常需要技巧——例如，在从池中获取一个连接的时候，通常需要超时机制，因为不同的客户端有不同的延迟需求。池的简单原则：维护一个连接队列，满足那些进入的等待者。使用传统的同步原语，这通常需要两个队列(queues)：一个用于等待者(当没有连接可用时)，一个用于连接(当没有等待者时)。</p>
+<p>使用 Offer/Brokers ，可以表达得非常自然：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Pool</span>(<span class="params">conns: <span class="type">Seq</span>[<span class="type">Conn</span>]</span>) </span>{</span><br><span class="line">  <span class="keyword">private</span>[<span class="keyword">this</span>] <span class="keyword">val</span> waiters = <span class="keyword">new</span> <span class="type">Broker</span>[<span class="type">Conn</span>]</span><br><span class="line">  <span class="keyword">private</span>[<span class="keyword">this</span>] <span class="keyword">val</span> returnConn = <span class="keyword">new</span> <span class="type">Broker</span>[<span class="type">Conn</span>]</span><br><span class="line"> </span><br><span class="line">  <span class="keyword">val</span> get: <span class="type">Offer</span>[<span class="type">Conn</span>] = waiters.recv</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">put</span></span>(c: <span class="type">Conn</span>) { returnConn ! c }</span><br><span class="line"> </span><br><span class="line">  <span class="keyword">private</span>[<span class="keyword">this</span>] <span class="function"><span class="keyword">def</span> <span class="title">loop</span></span>(connq: <span class="type">Queue</span>[<span class="type">Conn</span>]) {</span><br><span class="line">   <span class="type">Offer</span>.choose(</span><br><span class="line">    <span class="keyword">if</span> (connq.isEmpty) <span class="type">Offer</span>.never <span class="keyword">else</span> {</span><br><span class="line">     <span class="keyword">val</span> (head, rest) = connq.dequeue</span><br><span class="line">     waiters.send(head) { _ =&gt; loop(rest) }</span><br><span class="line">    },</span><br><span class="line">    returnConn.recv { c =&gt; loop(connq enqueue c) }</span><br><span class="line">   ).sync()</span><br><span class="line">  }</span><br><span class="line"> </span><br><span class="line">  loop(<span class="type">Queue</span>.empty ++ conns)</span><br><span class="line"> }</span><br></pre></td></tr></tbody></table></figure>
+<p>loop总是提供一个归还的连接，但只有queue非空的时候才会send。 使用持久化队列(persistent queue)更进一步简化逻辑。与连接池的接口也是通过Offer实现，所以调用者如果愿意设置timeout，他们可以通过利用组合子(combinators)来做：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> conn: <span class="type">Future</span>[<span class="type">Option</span>[<span class="type">Conn</span>]] = <span class="type">Offer</span>.choose(</span><br><span class="line">  pool.get { conn =&gt; <span class="type">Some</span>(conn) },</span><br><span class="line">  <span class="type">Offer</span>.timeout(<span class="number">1.</span>second) { _ =&gt; <span class="type">None</span> }</span><br><span class="line"> ).sync()</span><br></pre></td></tr></tbody></table></figure>
+<p>实现timeout不需要额外的记账(bookkeeping)；这是因为Offer的语义：如果Offer.timeout被选择，不会再有offer从池中获得——连接池和它的调用者在各自waiter的broker上不必同时同意接受和发送。</p>
+<h4 id="埃拉托色尼筛子-Sieve-of-Eratosthenes-译注：一种用于筛选素数的算法"><a href="#埃拉托色尼筛子-Sieve-of-Eratosthenes-译注：一种用于筛选素数的算法" class="headerlink" title="埃拉托色尼筛子(Sieve of Eratosthenes 译注：一种用于筛选素数的算法)"></a>埃拉托色尼筛子(Sieve of Eratosthenes 译注：一种用于筛选素数的算法)</h4><p>把并发程序构造为一组顺序的同步通信进程，通常很有用——有时程序被大大地简化了。Offer和Broker提供了一组工具来让它简单并一致。确实，它们的应用超越了我们可能认为是经典并发性问题——并发编程(有Offer/Broker的辅助)是一种有用的构建工具，正如子例程(subroutines)，类，和模块都是——来自CSP（译注：Communicating sequential processes的缩写，即通信顺序进程）的重要思想。</p>
+<p>这里有一个埃拉托色尼筛子可以构造为一个针对一个整数流(stream of integers)的连续的应用过滤器 。首先，我们需要一个整数的源(source of integers)：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">integers</span></span>(from: <span class="type">Int</span>): <span class="type">Offer</span>[<span class="type">Int</span>] = {</span><br><span class="line">  <span class="keyword">val</span> b = <span class="keyword">new</span> <span class="type">Broker</span>[<span class="type">Int</span>]</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">gen</span></span>(n: <span class="type">Int</span>): <span class="type">Unit</span> = b.send(n).sync() ensure gen(n + <span class="number">1</span>)</span><br><span class="line">  gen(from)</span><br><span class="line">  b.recv</span><br><span class="line"> }</span><br></pre></td></tr></tbody></table></figure>
+<p>integers(n) 方法简单地提供了从n开始的所有连续的整数。然后我们需要一个过滤器：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">filter</span></span>(in: <span class="type">Offer</span>[<span class="type">Int</span>], prime: <span class="type">Int</span>): <span class="type">Offer</span>[<span class="type">Int</span>] = {</span><br><span class="line">  <span class="keyword">val</span> b = <span class="keyword">new</span> <span class="type">Broker</span>[<span class="type">Int</span>]</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">loop</span></span>() {</span><br><span class="line">   in.sync() onSuccess { i =&gt;</span><br><span class="line">    <span class="keyword">if</span> (i % prime != <span class="number">0</span>)</span><br><span class="line">     b.send(i).sync() ensure loop()</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">     loop()</span><br><span class="line">   }</span><br><span class="line">  }</span><br><span class="line">  loop()</span><br><span class="line"> </span><br><span class="line">  b.recv</span><br><span class="line"> }</span><br></pre></td></tr></tbody></table></figure>
+<p>filter(in, p) 方法返回的offer删除了in中的所有质数(prime)的倍数。最终我们定义了我们的筛子（sieve）：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">sieve</span> </span>= {</span><br><span class="line">  <span class="keyword">val</span> b = <span class="keyword">new</span> <span class="type">Broker</span>[<span class="type">Int</span>]</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">loop</span></span>(of: <span class="type">Offer</span>[<span class="type">Int</span>]) {</span><br><span class="line">   <span class="keyword">for</span> (prime &lt;- of.sync(); _ &lt;- b.send(prime).sync())</span><br><span class="line">    loop(filter(of, prime))</span><br><span class="line">  }</span><br><span class="line">  loop(integers(<span class="number">2</span>))</span><br><span class="line">  b.recv</span><br><span class="line"> }</span><br></pre></td></tr></tbody></table></figure>
+<p>loop() 工作很简单：从of中读取下一个质数，然后对of应用过滤器排除这个质数。loop不断的递归，持续的质数被过滤，于是我们得到了筛选结果。我们现在打印前10000个质数：</p>
+<figure class="highlight scala"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> primes = sieve</span><br><span class="line"> <span class="number">0</span> until <span class="number">10000</span> foreach { _ =&gt;</span><br><span class="line">  println(primes.sync()())</span><br><span class="line"> }</span><br></pre></td></tr></tbody></table></figure>
+<p>除了构造简单，组件正交，这种做法也给你一种流式筛子(streaming sieve)：你不需要事先计算出你感兴趣的质数集合，从而进一步提高了模块化。</p>
+<h2 id="致谢"><a href="#致谢" class="headerlink" title="致谢"></a>致谢</h2><p>本课程由Twitter公司Scala社区贡献——我希望我是个忠实的记录者。</p>
+<p>Blake Matheny, Nick Kallen, Steve Gury, 和Raghavendra Prabhu提供了很多有用的指导和许多优秀的建议。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/scala/" rel="tag"># scala</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/02/26/数据仓库分层设计/" rel="prev" title="数据仓库分层设计">
+      <i class="fa fa-chevron-left"></i> 数据仓库分层设计
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/03/16/scala代码格式化配置/" rel="next" title="scala代码格式化配置">
+      scala代码格式化配置 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#序言"><span class="nav-number">1.</span> <span class="nav-text">序言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#格式化"><span class="nav-number">2.</span> <span class="nav-text">格式化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#空格"><span class="nav-number">2.1.</span> <span class="nav-text">空格</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#命名"><span class="nav-number">2.2.</span> <span class="nav-text">命名</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Imports"><span class="nav-number">2.3.</span> <span class="nav-text">Imports</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#花括号"><span class="nav-number">2.4.</span> <span class="nav-text">花括号</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#模式匹配"><span class="nav-number">2.5.</span> <span class="nav-text">模式匹配</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#注释"><span class="nav-number">2.6.</span> <span class="nav-text">注释</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#类型和泛型"><span class="nav-number">3.</span> <span class="nav-text">类型和泛型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#返回类型注解-annotation"><span class="nav-number">3.1.</span> <span class="nav-text">返回类型注解(annotation)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#变型"><span class="nav-number">3.2.</span> <span class="nav-text">变型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#类型别名"><span class="nav-number">3.3.</span> <span class="nav-text">类型别名</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#隐式转换"><span class="nav-number">3.4.</span> <span class="nav-text">隐式转换</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#集合"><span class="nav-number">4.</span> <span class="nav-text">集合</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#集合的使用"><span class="nav-number">4.1.</span> <span class="nav-text">集合的使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#风格"><span class="nav-number">4.2.</span> <span class="nav-text">风格</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#性能"><span class="nav-number">4.3.</span> <span class="nav-text">性能</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Java集合"><span class="nav-number">4.4.</span> <span class="nav-text">Java集合</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#并发"><span class="nav-number">5.</span> <span class="nav-text">并发</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Future"><span class="nav-number">5.1.</span> <span class="nav-text">Future</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#集合-1"><span class="nav-number">5.2.</span> <span class="nav-text">集合</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#控制结构"><span class="nav-number">6.</span> <span class="nav-text">控制结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#递归"><span class="nav-number">6.1.</span> <span class="nav-text">递归</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#返回-Return"><span class="nav-number">6.2.</span> <span class="nav-text">返回(Return)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#for循环和for推导"><span class="nav-number">6.3.</span> <span class="nav-text">for循环和for推导</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#要求require和断言-assert"><span class="nav-number">6.4.</span> <span class="nav-text">要求require和断言(assert)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#函数式编程"><span class="nav-number">7.</span> <span class="nav-text">函数式编程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Case类模拟代数数据类型"><span class="nav-number">7.1.</span> <span class="nav-text">Case类模拟代数数据类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Options"><span class="nav-number">7.2.</span> <span class="nav-text">Options</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#模式匹配-1"><span class="nav-number">7.3.</span> <span class="nav-text">模式匹配</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#偏函数"><span class="nav-number">7.4.</span> <span class="nav-text">偏函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#解构绑定"><span class="nav-number">7.5.</span> <span class="nav-text">解构绑定</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#惰性赋值"><span class="nav-number">7.6.</span> <span class="nav-text">惰性赋值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#传名调用"><span class="nav-number">7.7.</span> <span class="nav-text">传名调用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flatMap"><span class="nav-number">7.8.</span> <span class="nav-text">flatMap</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#面向对象的编程"><span class="nav-number">8.</span> <span class="nav-text">面向对象的编程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#依赖注入"><span class="nav-number">8.1.</span> <span class="nav-text">依赖注入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Trait"><span class="nav-number">8.2.</span> <span class="nav-text">Trait</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可见性"><span class="nav-number">8.3.</span> <span class="nav-text">可见性</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#private-this"><span class="nav-number">8.3.1.</span> <span class="nav-text">private[this]</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#单例类型"><span class="nav-number">8.3.2.</span> <span class="nav-text">单例类型</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#结构类型"><span class="nav-number">8.4.</span> <span class="nav-text">结构类型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#垃圾回收"><span class="nav-number">9.</span> <span class="nav-text">垃圾回收</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Java-兼容性"><span class="nav-number">10.</span> <span class="nav-text">Java 兼容性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Twitter标准库"><span class="nav-number">11.</span> <span class="nav-text">Twitter标准库</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Future-1"><span class="nav-number">11.1.</span> <span class="nav-text">Future</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#闲话-组合-composition"><span class="nav-number">11.2.</span> <span class="nav-text">闲话: 组合(composition)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#风格-1"><span class="nav-number">11.2.1.</span> <span class="nav-text">风格</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Cancellation"><span class="nav-number">11.2.2.</span> <span class="nav-text">Cancellation</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Local"><span class="nav-number">11.2.3.</span> <span class="nav-text">Local</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Offer-Broker"><span class="nav-number">11.3.</span> <span class="nav-text">Offer/Broker</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#例子：一个简单的连接池"><span class="nav-number">11.3.1.</span> <span class="nav-text">例子：一个简单的连接池</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#埃拉托色尼筛子-Sieve-of-Eratosthenes-译注：一种用于筛选素数的算法"><span class="nav-number">11.3.2.</span> <span class="nav-text">埃拉托色尼筛子(Sieve of Eratosthenes 译注：一种用于筛选素数的算法)</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#致谢"><span class="nav-number">12.</span> <span class="nav-text">致谢</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Freehuber" src="/images/avatar.gif">
+  <p class="site-author-name" itemprop="name">Freehuber</p>
+  <div class="site-description" itemprop="description">左手写诗，右手撸码</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">57</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">40</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/freehubs" title="GitHub → https://github.com/freehubs" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  © 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Freehuber</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  
+  
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+
+
+
+
+
+<script src="/bundle.js"></script><script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: '47209006cdab2e987d9e',
+      clientSecret: 'c7df73e28dcfcef507958f6cf2457857ac9776be',
+      repo: 'freehubs.github.io',
+      owner: 'freehubs',
+      admin: ['freehubs'],
+      id: '794e8b943b265f182be5f2bfb45a7d3b',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script></body></html>
